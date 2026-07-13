@@ -71,9 +71,21 @@ cv_matcher/
 ├── templates/             # HTML templates
 └── requirements.txt        # Python dependencies
 ```
-
+USER PANEL
  <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/4cdc5efa-53a7-46c4-8a92-0b92dd81d725" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/a681f6cd-6249-426f-b81f-b217099f9f9b" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/6a0bec48-7b2c-4a79-8728-485975c3370a" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/59cef393-0d5f-42d0-b43d-cc7c161ed580" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/09db7a08-d54d-4f02-bd78-3fb9438e704b" />
 
+USER PANEL
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/dd4509cc-d48f-46c1-8573-2934598562cf" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/379dad19-20a9-49ea-97ea-78bb608bed65" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/7ba1cdef-ec8a-4447-b8ac-ed80ddc13ae3" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/823c115e-74f1-4482-96f7-64eebb5d1956" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/7f00ab3c-6bb8-4b29-aec3-1bbd8757d985" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/e7e8bdd2-3156-497f-ba61-7b68e8e2e110" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/ca7349a2-a606-4457-a171-70e7e2e00ec5" />
 
 
 
