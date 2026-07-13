@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — CV Guard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*{font-family:'Inter',sans-serif;}
+body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;}
+.glass{background:rgba(255,255,255,.07);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.13);}
+.input-field{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);color:#f1f5f9;transition:all .25s;}
+.input-field:focus{border-color:#7c3aed;background:rgba(124,58,237,.1);outline:none;box-shadow:0 0 0 3px rgba(124,58,237,.2);}
+.input-field::placeholder{color:rgba(255,255,255,.4);}
+.btn-primary{background:linear-gradient(135deg,#7c3aed,#4f46e5);transition:all .3s;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(124,58,237,.45);}
+.role-btn{border:2px solid rgba(255,255,255,.15);transition:all .25s;color:rgba(255,255,255,.7);border-radius:12px;padding:10px;text-align:center;cursor:pointer;}
+.role-btn.active{border-color:#7c3aed;background:rgba(124,58,237,.2);color:#c4b5fd;}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.28;pointer-events:none;}
+.slide-in{animation:slideIn .5s ease forwards;}
+@keyframes slideIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.float{animation:float 6s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.flash-ok{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#86efac;}
+.flash-err{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+</style>
+</head>
+<body>
+  <div class="orb w-96 h-96 bg-purple-600" style="top:-80px;left:-80px;animation:float 8s ease-in-out infinite;"></div>
+  <div class="orb w-72 h-72 bg-blue-500" style="bottom:-60px;right:-60px;animation:float 10s ease-in-out infinite reverse;"></div>
+
+  <div class="relative z-10 w-full max-w-md slide-in">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl shadow-2xl mb-4 float" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)">
+        <i class="fas fa-shield-halved text-3xl text-white"></i>
+      </div>
+      <h1 class="text-3xl font-black text-white">CV Guard</h1>
+      <p class="text-purple-300 mt-1 text-sm">AI-Powered Recruitment Platform</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat,msg in messages %}
+      <div class="mb-4 px-4 py-3 rounded-xl text-sm font-medium {% if cat=='error' %}flash-err{% else %}flash-ok{% endif %}">
+        <i class="fas {% if cat=='error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} mr-2"></i>{{ msg }}
+      </div>
+      {% endfor %}
+    {% endwith %}
+
+    <div class="glass rounded-3xl p-8 shadow-2xl">
+      <h2 class="text-2xl font-bold text-white mb-1">Welcome Back</h2>
+      <p class="text-sm mb-6" style="color:rgba(255,255,255,.5)">Sign in to your account</p>
+
+      <!-- Role Selector -->
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div onclick="setRole('user')" id="role-user" class="role-btn active">
+          <i class="fas fa-user text-lg mb-1 block"></i>
+          <span class="text-sm font-semibold">Job Seeker</span>
+        </div>
+        <div onclick="setRole('admin')" id="role-admin" class="role-btn">
+          <i class="fas fa-shield-halved text-lg mb-1 block"></i>
+          <span class="text-sm font-semibold">Admin</span>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('login') }}">
+        <input type="hidden" name="role" id="roleInput" value="user">
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-2" style="color:rgba(255,255,255,.7)">Email Address</label>
+          <div class="relative">
+            <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color:rgba(255,255,255,.4)"></i>
+            <input type="email" name="email" required placeholder="you@example.com" class="input-field w-full pl-11 pr-4 py-3 rounded-xl text-sm">
+          </div>
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-medium mb-2" style="color:rgba(255,255,255,.7)">Password</label>
+          <div class="relative">
+            <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color:rgba(255,255,255,.4)"></i>
+            <input type="password" name="password" required id="loginPw" placeholder="••••••••" class="input-field w-full pl-11 pr-11 py-3 rounded-xl text-sm">
+            <button type="button" onclick="togglePw()" class="absolute right-4 top-1/2 -translate-y-1/2" style="color:rgba(255,255,255,.4)">
+              <i class="fas fa-eye text-sm" id="eyeIco"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary w-full py-3.5 rounded-xl text-white font-semibold text-sm">
+          <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+        </button>
+      </form>
+
+      <div class="mt-5 text-center">
+        <p class="text-sm" style="color:rgba(255,255,255,.5)">Don't have an account?
+          <a href="{{ url_for('register') }}" class="text-purple-400 hover:text-purple-300 font-semibold ml-1 transition-colors">Create Account</a>
+        </p>
+      </div>
+      <div class="mt-4 p-3 rounded-xl text-center" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)">
+        <p class="text-xs" style="color:rgba(255,255,255,.4)"><i class="fas fa-info-circle mr-1"></i>Demo Admin: admin@cvguard.com / admin123</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+function setRole(r){
+  document.getElementById('roleInput').value=r;
+  ['user','admin'].forEach(x=>document.getElementById('role-'+x).classList.remove('active'));
+  document.getElementById('role-'+r).classList.add('active');
+}
+function togglePw(){
+  const p=document.getElementById('loginPw'),e=document.getElementById('eyeIco');
+  p.type=p.type==='password'?'text':'password';
+  e.className=p.type==='text'?'fas fa-eye-slash text-sm':'fas fa-eye text-sm';
+}
+</script>
+</body>
+</html>

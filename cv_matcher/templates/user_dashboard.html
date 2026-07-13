@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_user.theme or 'dark' }}">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Board — CV Guard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*{font-family:'Inter',sans-serif;}
+
+/* ── THEME VARIABLES ─────────────────────────────────────── */
+:root{
+  --bg:#080818; --sidebar:#0d0d22; --card:rgba(255,255,255,0.05);
+  --card-solid:#12122a; --border:rgba(255,255,255,0.09);
+  --text:#f1f5f9; --text2:#cbd5e1; --muted:#94a3b8;
+  --input:rgba(255,255,255,0.07); --modal:#13132a;
+  --shadow:rgba(0,0,0,0.5);
+}
+[data-theme="light"]{
+  --bg:#f8fafc; --sidebar:#1e293b; --card:#ffffff;
+  --card-solid:#ffffff; --border:#e2e8f0;
+  --text:#0f172a; --text2:#334155; --muted:#64748b;
+  --input:#f1f5f9; --modal:#ffffff;
+  --shadow:rgba(0,0,0,0.12);
+}
+
+/* ── BASE ────────────────────────────────────────────────── */
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar{background:var(--sidebar);border-right:1px solid var(--border);width:220px;}
+.nav-item{border-radius:12px;transition:all .2s;color:var(--muted);}
+.nav-item:hover{background:rgba(124,58,237,.15);color:#a78bfa;}
+.nav-item.active{background:rgba(124,58,237,.2);color:#a78bfa;}
+/* Sidebar text always light (dark sidebar in both themes) */
+.sidebar .brand-name{color:#f1f5f9;}
+.sidebar .brand-sub{color:#a78bfa;}
+.sidebar .user-name{color:#f1f5f9;}
+.sidebar .user-city{color:#94a3b8;}
+
+/* ── CARDS ───────────────────────────────────────────────── */
+.job-card{background:var(--card);border:1px solid var(--border);transition:all .3s;}
+.job-card:hover{border-color:rgba(124,58,237,.4);transform:translateY(-3px);box-shadow:0 12px 40px var(--shadow);}
+[data-theme="light"] .job-card:hover{box-shadow:0 8px 24px rgba(109,40,217,.12);}
+
+/* ── TOP BAR ─────────────────────────────────────────────── */
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);}
+.topbar-title{color:var(--text);font-weight:700;}
+.topbar-sub{color:var(--muted);}
+
+/* ── SEARCH INPUT ────────────────────────────────────────── */
+.search-input{background:var(--card);border:1px solid var(--border);color:var(--text);}
+.search-input:focus{border-color:#7c3aed;outline:none;}
+.search-input::placeholder{color:var(--muted);}
+
+/* ── ICON BUTTONS (bell, theme) ──────────────────────────── */
+.icon-btn{background:var(--card);border:1px solid var(--border);transition:all .2s;}
+.icon-btn:hover{border-color:rgba(124,58,237,.4);}
+
+/* ── CATEGORY CHIPS ──────────────────────────────────────── */
+.cat-chip{background:var(--card);border:1px solid var(--border);color:var(--muted);transition:all .2s;}
+.cat-chip:hover{border-color:rgba(124,58,237,.4);color:var(--text);}
+.cat-chip.active{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.5);color:#a78bfa;font-weight:600;}
+[data-theme="light"] .cat-chip.active{background:rgba(109,40,217,.1);color:#6d28d9;}
+
+/* ── BADGES ──────────────────────────────────────────────── */
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.badge-hiring{background:rgba(124,58,237,.12);color:#a78bfa;border:1px solid rgba(124,58,237,.2);}
+.badge-applied{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.2);}
+[data-theme="light"] .badge-hiring{background:rgba(109,40,217,.08);color:#6d28d9;border-color:rgba(109,40,217,.2);}
+[data-theme="light"] .badge-applied{background:rgba(22,163,74,.08);color:#16a34a;border-color:rgba(22,163,74,.2);}
+
+/* ── APPLY BUTTONS ───────────────────────────────────────── */
+.btn-apply{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;transition:all .3s;}
+.btn-apply:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,.4);}
+.btn-applied{background:transparent;border:1px solid rgba(74,222,128,.35);color:#4ade80;}
+[data-theme="light"] .btn-applied{color:#16a34a;border-color:rgba(22,163,74,.35);}
+
+/* ── NOTIFICATION PANEL ──────────────────────────────────── */
+.notif-panel{background:var(--card-solid);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px var(--shadow);width:360px;max-height:520px;display:flex;flex-direction:column;}
+.notif-panel-title{color:var(--text);font-weight:700;}
+.notif-item{border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.notif-item:hover{background:rgba(124,58,237,.07);}
+[data-theme="light"] .notif-item:hover{background:rgba(109,40,217,.04);}
+.notif-title{color:var(--text);font-weight:600;}
+.notif-preview{color:var(--muted);}
+.notif-time{color:var(--muted);}
+.notif-unread-success{background:rgba(74,222,128,.05);}
+.notif-unread-warning{background:rgba(245,158,11,.05);}
+.notif-unread-info{background:rgba(96,165,250,.05);}
+[data-theme="light"] .notif-unread-success{background:rgba(22,163,74,.04);}
+[data-theme="light"] .notif-unread-warning{background:rgba(217,119,6,.04);}
+[data-theme="light"] .notif-unread-info{background:rgba(37,99,235,.04);}
+
+/* ── APPLY MODAL ─────────────────────────────────────────── */
+.modal-overlay{background:rgba(0,0,0,.75);backdrop-filter:blur(10px);}
+.modal-box{background:var(--modal);border:1px solid var(--border);}
+[data-theme="light"] .modal-box{box-shadow:0 20px 60px rgba(0,0,0,.15);}
+.modal-title{color:var(--text);}
+.modal-sub{color:var(--muted);}
+.upload-area{border:2px dashed var(--border);transition:all .3s;}
+.upload-area:hover,.upload-area.dragging{border-color:#7c3aed;background:rgba(124,58,237,.05);}
+.upload-hint{color:var(--muted);}
+.progress-bg{background:rgba(124,58,237,.12);}
+[data-theme="light"] .progress-bg{background:rgba(109,40,217,.08);}
+.progress-label{color:var(--muted);}
+
+/* ── CHAT WINDOW ─────────────────────────────────────────── */
+.chat-window{width:340px;height:480px;background:var(--modal);border:1px solid var(--border);border-radius:20px;box-shadow:0 20px 60px var(--shadow);display:flex;flex-direction:column;overflow:hidden;}
+.chat-msg-text{color:var(--text2);}
+.chat-msg.bot{background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.2);border-radius:16px 16px 16px 4px;}
+.chat-msg.user{background:rgba(79,70,229,.25);border-radius:16px 16px 4px 16px;margin-left:auto;}
+[data-theme="light"] .chat-msg.bot{background:rgba(109,40,217,.08);border-color:rgba(109,40,217,.15);}
+[data-theme="light"] .chat-msg.user{background:rgba(67,56,202,.1);}
+.chat-input-field{background:var(--input);border:1px solid var(--border);color:var(--text);}
+.chat-input-field:focus{outline:none;border-color:#7c3aed;}
+.chat-input-field::placeholder{color:var(--muted);}
+.quick-reply-btn{background:rgba(124,58,237,.12);color:#a78bfa;border:1px solid rgba(124,58,237,.2);transition:all .2s;white-space:nowrap;font-size:11px;padding:4px 10px;border-radius:20px;}
+.quick-reply-btn:hover{background:rgba(124,58,237,.22);}
+[data-theme="light"] .quick-reply-btn{background:rgba(109,40,217,.07);color:#6d28d9;border-color:rgba(109,40,217,.18);}
+
+/* ── MISC ────────────────────────────────────────────────── */
+.notif-dot{width:9px;height:9px;background:#ef4444;border-radius:50%;position:absolute;top:-2px;right:-2px;border:2px solid var(--bg);}
+.fade-in{animation:fadeIn .4s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.progress-bar{background:linear-gradient(90deg,#7c3aed,#4f46e5,#06b6d4);background-size:200%;animation:shimmer 1.5s ease-in-out infinite;}
+@keyframes shimmer{0%{background-position:200%}100%{background-position:-200%}}
+input[type="file"]{display:none;}
+</style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+<!-- ═══ SIDEBAR ════════════════════════════════════════════ -->
+<aside class="sidebar flex-shrink-0 flex flex-col p-4 overflow-y-auto">
+  <div class="flex items-center gap-2.5 mb-8 mt-1">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)">
+      <i class="fas fa-shield-halved text-white text-sm"></i>
+    </div>
+    <div>
+      <p class="font-black text-sm brand-name">CV Guard</p>
+      <p class="text-xs brand-sub">Job Portal</p>
+    </div>
+  </div>
+  <nav class="space-y-1 flex-1">
+    <a href="{{ url_for('user_dashboard') }}" class="nav-item active flex items-center gap-3 px-4 py-2.5 text-sm">
+      <i class="fas fa-th-large w-4"></i>Job Board
+    </a>
+    <a href="{{ url_for('my_applications') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm">
+      <i class="fas fa-file-lines w-4"></i>My Applications
+    </a>
+    <a href="{{ url_for('user_settings') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm">
+      <i class="fas fa-gear w-4"></i>Settings
+    </a>
+  </nav>
+  <div class="mt-auto pt-4" style="border-top:1px solid rgba(255,255,255,.1)">
+    <div class="flex items-center gap-2 px-2 mb-3">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff">
+        {{ current_user.name[0].upper() }}
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-semibold truncate user-name">{{ current_user.name }}</p>
+        <p class="text-xs user-city">{{ current_user.city or 'No city set' }}</p>
+      </div>
+    </div>
+    <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm">
+      <i class="fas fa-right-from-bracket w-4"></i>Logout
+    </a>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ════════════════════════════════════════════════ -->
+<main class="flex-1 overflow-y-auto">
+
+  <!-- Top Bar -->
+  <div class="topbar sticky top-0 z-20 px-5 py-3 flex items-center justify-between gap-3">
+    <div>
+      <h1 class="text-base topbar-title">Job Board</h1>
+      <p class="text-xs topbar-sub">{{ jobs|length }} active vacancies</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <!-- Search -->
+      <form method="GET" action="{{ url_for('user_dashboard') }}" class="relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color:var(--muted)"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Search jobs..."
+          class="search-input pl-8 pr-4 py-2 rounded-xl text-xs w-36">
+      </form>
+      <!-- Bell -->
+      <div class="relative">
+        <button onclick="toggleNotifPanel()" id="bellBtn"
+          class="icon-btn relative w-9 h-9 rounded-xl flex items-center justify-center">
+          <i class="fas fa-bell text-sm" style="color:var(--muted)"></i>
+          {% if unread_notifs > 0 %}
+          <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">{{ unread_notifs if unread_notifs < 10 else '9+' }}</span>
+          {% endif %}
+        </button>
+        <!-- Notification Panel -->
+        <div id="notifPanel" class="notif-panel absolute right-0 top-12 z-50 hidden">
+          <div class="flex items-center justify-between px-4 py-3 flex-shrink-0" style="border-bottom:1px solid var(--border)">
+            <p class="text-sm notif-panel-title"><i class="fas fa-bell text-purple-500 mr-1.5"></i>Notifications</p>
+            <button onclick="markAllRead()" class="text-xs text-purple-500 hover:text-purple-400 font-semibold transition-colors">Mark all read</button>
+          </div>
+          <div class="overflow-y-auto flex-1">
+            {% for n in notifs %}
+            <div class="notif-item px-4 py-3
+              {% if not n.is_read %}{% if n.notif_type=='success' %}notif-unread-success{% elif n.notif_type=='warning' %}notif-unread-warning{% else %}notif-unread-info{% endif %}{% endif %}"
+              onclick="openMessage({{ loop.index0 }})">
+              <div class="flex gap-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5
+                  {% if n.notif_type=='success' %}bg-green-500/15 text-green-500
+                  {% elif n.notif_type=='warning' %}bg-yellow-500/15 text-yellow-500
+                  {% elif n.notif_type=='danger' %}bg-red-500/15 text-red-500
+                  {% else %}bg-blue-500/15 text-blue-500{% endif %}">
+                  <i class="fas text-xs {% if n.notif_type=='success' %}fa-check-circle{% elif n.notif_type=='warning' %}fa-triangle-exclamation{% else %}fa-bell{% endif %}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold notif-title leading-snug">{{ n.title[:55] }}{% if n.title|length > 55 %}...{% endif %}</p>
+                  <p class="text-xs mt-0.5 notif-preview">{{ n.preview }}</p>
+                  <p class="text-xs mt-1 notif-time">{{ n.created_at.strftime('%d %b, %H:%M') }}</p>
+                </div>
+                <div class="flex items-start gap-1.5 flex-shrink-0 pt-0.5">
+                  <span class="text-xs text-purple-500">→</span>
+                  {% if not n.is_read %}<div class="w-2 h-2 rounded-full bg-purple-500 mt-1"></div>{% endif %}
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <div class="px-4 py-10 text-center">
+              <i class="fas fa-bell-slash text-3xl mb-2 opacity-20" style="color:var(--muted)"></i>
+              <p class="text-sm" style="color:var(--muted)">No notifications yet</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <!-- Theme toggle -->
+      <button onclick="toggleTheme()" class="icon-btn w-9 h-9 rounded-xl flex items-center justify-center" title="Toggle theme">
+        <i class="fas fa-{% if current_user.theme == 'dark' %}sun text-yellow-400{% else %}moon text-purple-400{% endif %} text-sm"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="p-5">
+    <!-- Category chips -->
+    {% if categories %}
+    <div class="flex gap-2 flex-wrap mb-4">
+      <a href="{{ url_for('user_dashboard') }}" class="cat-chip {% if not cat_filter %}active{% endif %} text-xs px-3 py-1.5 rounded-full cursor-pointer">
+        <i class="fas fa-th-large mr-1"></i>All
+      </a>
+      {% for cat in categories %}
+      <a href="{{ url_for('user_dashboard', cat=cat.id) }}" class="cat-chip {% if cat_filter == cat.id|string %}active{% endif %} text-xs px-3 py-1.5 rounded-full cursor-pointer">
+        <i class="fas {{ cat.icon }} mr-1"></i>{{ cat.name }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not jobs %}
+    <div class="text-center py-20" style="color:var(--muted)">
+      <i class="fas fa-briefcase text-5xl mb-4 opacity-20"></i>
+      <p class="text-lg font-semibold" style="color:var(--text)">No jobs found</p>
+      <p class="text-sm mt-1">Try a different category or search term</p>
+    </div>
+    {% else %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+      {% for job in jobs %}
+      <div class="job-card rounded-2xl p-5 fade-in" style="animation-delay:{{ (loop.index0 * 0.05)|round(2) }}s">
+        <!-- Card header -->
+        <div class="flex items-start justify-between gap-2 mb-3">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.2)">
+            {% if job.category_obj %}<i class="fas {{ job.category_obj.icon }} text-purple-500"></i>
+            {% else %}<i class="fas fa-briefcase text-purple-500"></i>{% endif %}
+          </div>
+          {% if job.id in applied_job_ids %}
+          <span class="badge badge-applied"><i class="fas fa-check mr-1"></i>Applied</span>
+          {% elif job.category_obj %}
+          <span class="badge badge-hiring">{{ job.category_obj.name }}</span>
+          {% else %}
+          <span class="badge badge-hiring">Hiring</span>
+          {% endif %}
+        </div>
+        <h3 class="font-bold text-base mb-1" style="color:var(--text)">{{ job.title }}</h3>
+        <p class="text-xs mb-3 line-clamp-2" style="color:var(--muted)">{{ job.description }}</p>
+        <div class="flex items-center gap-3 text-xs mb-3" style="color:var(--muted)">
+          <span><i class="fas fa-location-dot text-purple-500 mr-1"></i>{{ job.location }}</span>
+          {% if job.deadline %}<span><i class="fas fa-clock text-orange-500 mr-1"></i>{{ job.deadline }}</span>{% endif %}
+        </div>
+        <div class="flex flex-wrap gap-1.5 mb-4">
+          {% for skill in job.required_skills.split(',')[:4] %}
+          <span class="badge" style="background:rgba(59,130,246,.1);color:#3b82f6;border:1px solid rgba(59,130,246,.2)">{{ skill.strip() }}</span>
+          {% endfor %}
+          {% if job.required_skills.split(',')|length > 4 %}
+          <span class="badge" style="background:var(--input);color:var(--muted)">+{{ job.required_skills.split(',')|length - 4 }}</span>
+          {% endif %}
+        </div>
+        {% if job.id in applied_job_ids %}
+        <div class="flex gap-2 mt-auto">
+          <button onclick="openJobDetail({{ loop.index0 }})" class="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors hover:border-purple-500" style="border-color:var(--border);color:var(--muted)">
+            <i class="fas fa-info-circle mr-1"></i>View Details
+          </button>
+          <button class="btn-applied flex-1 py-2.5 rounded-xl text-sm font-semibold cursor-default">
+            <i class="fas fa-circle-check mr-1"></i>Applied
+          </button>
+        </div>
+        {% else %}
+        <div class="flex gap-2 mt-auto">
+          <button onclick="openJobDetail({{ loop.index0 }})" class="py-2.5 px-3 rounded-xl text-sm border transition-colors hover:border-purple-500 flex-shrink-0" style="border-color:var(--border);color:var(--muted)" title="View full details">
+            <i class="fas fa-info-circle"></i>
+          </button>
+          <button onclick="openApplyModal({{ job.id }}, '{{ job.title|e }}')" class="btn-apply flex-1 py-2.5 rounded-xl text-sm font-semibold">
+            <i class="fas fa-paper-plane mr-1"></i>Apply Now
+          </button>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</main>
+
+<!-- ═══ APPLY MODAL ═════════════════════════════════════════ -->
+<div id="applyModal" class="modal-overlay fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 hidden">
+  <div class="modal-box rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+    <div class="px-6 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
+      <div>
+        <h3 class="font-bold modal-title" id="modalJobTitle">Apply for Job</h3>
+        <p class="text-xs mt-0.5 modal-sub">Upload your CV for instant AI assessment</p>
+      </div>
+      <button onclick="closeApplyModal()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 transition-colors" style="color:var(--muted)">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <div id="uploadArea" class="upload-area rounded-xl p-8 text-center cursor-pointer mb-4"
+           onclick="document.getElementById('cvFile').click()"
+           ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+        <i class="fas fa-cloud-upload-alt text-3xl text-purple-500 mb-3"></i>
+        <p class="text-sm font-semibold" style="color:var(--text)">Drop your CV here or click to browse</p>
+        <p class="text-xs mt-1 upload-hint">PDF, PNG, JPG/JPEG — max 16MB</p>
+        <p id="fileName" class="text-xs text-purple-500 mt-2 font-semibold"></p>
+        <input type="file" id="cvFile" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileSelect(this)">
+      </div>
+      <div id="progressBar" class="hidden mb-4">
+        <div class="flex justify-between text-xs mb-1.5 progress-label">
+          <span id="progressLabel">Analyzing...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="h-2 rounded-full overflow-hidden progress-bg">
+          <div id="progressFill" class="progress-bar h-full rounded-full transition-all duration-500" style="width:0%"></div>
+        </div>
+      </div>
+      <div id="resultPanel" class="hidden rounded-xl p-4 mb-4" style="background:var(--input);border:1px solid var(--border)">
+        <div class="flex items-center gap-4">
+          <div id="scoreRing" class="flex-shrink-0"></div>
+          <div class="flex-1">
+            <p id="eligibilityStatus" class="font-bold text-lg"></p>
+            <p id="tierLabel" class="text-xs mt-0.5" style="color:var(--muted)"></p>
+            <div id="matchedSkillsWrap" class="flex flex-wrap gap-1 mt-2"></div>
+          </div>
+        </div>
+      </div>
+      <button id="applyBtn" onclick="submitApplication()" disabled
+        class="btn-apply w-full py-3 rounded-xl text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
+        <i class="fas fa-brain mr-2"></i>Analyze & Submit CV
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FULL MESSAGE READER MODAL ═══════════════════════════ -->
+<div id="msgReaderModal" class="modal-overlay fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
+  <div class="modal-box rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh]">
+    <div class="flex items-start gap-3 px-6 py-4 flex-shrink-0" style="border-bottom:1px solid var(--border)">
+      <div id="msgReaderIcon" class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-bell text-sm"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p id="msgReaderTitle" class="font-bold leading-snug" style="color:var(--text)">Message</p>
+        <p id="msgReaderTime" class="text-xs mt-0.5" style="color:var(--muted)"></p>
+      </div>
+      <button onclick="closeMsgReader()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 flex-shrink-0" style="color:var(--muted)">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+    </div>
+    <div class="px-6 py-5 overflow-y-auto flex-1">
+      <pre id="msgReaderBody" style="white-space:pre-wrap;font-family:inherit;font-size:14px;line-height:1.85;color:var(--text);margin:0"></pre>
+    </div>
+    <div class="px-6 py-4 flex-shrink-0" style="border-top:1px solid var(--border)">
+      <button onclick="closeMsgReader()" class="btn-apply w-full py-2.5 rounded-xl text-sm font-semibold">
+        <i class="fas fa-check mr-2"></i>Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CHATBOT ══════════════════════════════════════════════ -->
+<div class="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+  <div id="chatWindow" class="chat-window hidden fade-in">
+    <div style="background:linear-gradient(135deg,#6d28d9,#4f46e5)" class="px-4 py-3 flex items-center justify-between flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center"><i class="fas fa-robot text-sm text-white"></i></div>
+        <div><p class="text-sm font-bold text-white">CV Guard AI</p><p class="text-xs text-purple-200">● Online</p></div>
+      </div>
+      <button onclick="toggleChat()" class="text-white/60 hover:text-white"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-2">
+      <div class="chat-msg bot p-3 text-xs chat-msg-text">
+        👋 Hi <strong>{{ current_user.name }}</strong>! I'm CV Guard AI.<br>Ask me about jobs, deadlines, your scores, or how to apply!
+      </div>
+    </div>
+    <div class="px-3 pb-2 flex gap-1.5 overflow-x-auto flex-shrink-0">
+      {% for q in ['Show jobs','Deadlines','My status','How to apply','Tiers'] %}
+      <button onclick="sendQuick('{{ q }}')" class="quick-reply-btn flex-shrink-0">{{ q }}</button>
+      {% endfor %}
+    </div>
+    <div class="px-3 pb-3 flex gap-2 flex-shrink-0">
+      <input type="text" id="chatInput" class="chat-input-field flex-1 px-3 py-2 rounded-xl text-xs"
+        placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendMessage()">
+      <button onclick="sendMessage()" class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#7c3aed">
+        <i class="fas fa-paper-plane text-xs text-white"></i>
+      </button>
+    </div>
+  </div>
+  <button onclick="toggleChat()" class="relative w-14 h-14 rounded-full flex items-center justify-center shadow-lg" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);box-shadow:0 8px 24px rgba(124,58,237,.45)">
+    <i class="fas fa-comments text-xl text-white" id="chatIcon"></i>
+    <span id="chatNotif" class="notif-dot" {% if unread_notifs == 0 %}style="display:none"{% endif %}></span>
+  </button>
+</div>
+
+<!-- ═══ JOB DETAIL MODAL ════════════════════════════════════ -->
+<div id="jobDetailModal" class="modal-overlay fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
+  <div class="modal-box rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh]">
+    <!-- Header -->
+    <div class="flex items-start gap-3 px-6 py-4 flex-shrink-0" style="border-bottom:1px solid var(--border)">
+      <div id="jdIcon" class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.25)">
+        <i class="fas fa-briefcase text-purple-500"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p id="jdTitle" class="font-bold text-base leading-snug" style="color:var(--text)">Job Title</p>
+        <p id="jdCat" class="text-xs mt-0.5" style="color:var(--muted)"></p>
+      </div>
+      <button onclick="closeJobDetail()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 flex-shrink-0" style="color:var(--muted)">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+    </div>
+    <!-- Body -->
+    <div class="px-6 py-5 overflow-y-auto flex-1 space-y-4">
+      <!-- Meta row -->
+      <div class="flex flex-wrap gap-3 text-sm">
+        <span id="jdLoc" style="color:var(--muted)"></span>
+        <span id="jdDl" style="color:var(--muted)"></span>
+      </div>
+      <!-- Description -->
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:var(--muted)">Job Description</p>
+        <p id="jdDesc" class="text-sm leading-relaxed" style="color:var(--text2)"></p>
+      </div>
+      <!-- Skills -->
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wide mb-2" style="color:var(--muted)">Required Skills</p>
+        <div id="jdSkills" class="flex flex-wrap gap-1.5"></div>
+      </div>
+      <!-- Already applied notice -->
+      <div id="jdAppliedNote" class="hidden px-4 py-3 rounded-xl text-sm font-medium text-green-500" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2)">
+        <i class="fas fa-circle-check mr-2"></i>You have already applied for this job.
+      </div>
+    </div>
+    <!-- Footer -->
+    <div class="px-6 py-4 flex gap-3 flex-shrink-0" style="border-top:1px solid var(--border)">
+      <button onclick="closeJobDetail()" class="flex-1 py-2.5 rounded-xl text-sm border" style="border-color:var(--border);color:var(--muted)">Close</button>
+      <button id="jdApplyBtn" onclick="applyFromDetail()" class="btn-apply flex-1 py-2.5 rounded-xl text-sm font-semibold">
+        <i class="fas fa-paper-plane mr-1.5"></i>Apply Now
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Jobs data for JS -->
+<script id="jobsData" type="application/json">
+[{% for job in jobs %}{"id":{{ job.id }},"title":"{{ job.title|e }}","description":"{{ job.description|replace('\n',' ')|replace('"','\\"')|e }}","skills":"{{ job.required_skills|e }}","location":"{{ job.location|e }}","deadline":"{{ job.deadline or '' }}","category":"{{ job.category_obj.name if job.category_obj else '' }}","icon":"{{ job.category_obj.icon if job.category_obj else 'fa-briefcase' }}","applied":{{ 'true' if job.id in applied_job_ids else 'false' }}}{% if not loop.last %},{% endif %}{% endfor %}]
+</script>
+
+<!-- Notif data for JS -->
+<script id="notifData" type="application/json">{{ notifs | tojson_safe }}</script>
+
+<script>
+// ── Job Detail Modal ─────────────────────────────────────────
+let jobsList = [];
+try { jobsList = JSON.parse(document.getElementById('jobsData').textContent); } catch(e){}
+let currentDetailJobId = null;
+
+function openJobDetail(idx) {
+  const job = jobsList[idx];
+  if (!job) return;
+  currentDetailJobId = job.id;
+
+  // Icon
+  const icon = document.getElementById('jdIcon');
+  icon.innerHTML = `<i class="fas ${job.icon} text-purple-500"></i>`;
+
+  document.getElementById('jdTitle').textContent = job.title;
+  document.getElementById('jdCat').textContent = job.category || 'General';
+  document.getElementById('jdLoc').innerHTML = `<i class="fas fa-location-dot text-purple-500 mr-1.5"></i>${job.location}`;
+  document.getElementById('jdDl').innerHTML = job.deadline
+    ? `<i class="fas fa-calendar text-orange-500 mr-1.5"></i>Deadline: ${job.deadline}`
+    : '';
+  document.getElementById('jdDesc').textContent = job.description;
+
+  // Skills
+  const skillsWrap = document.getElementById('jdSkills');
+  skillsWrap.innerHTML = job.skills.split(',').map(s =>
+    `<span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(59,130,246,.1);color:#3b82f6;border:1px solid rgba(59,130,246,.2)">${s.trim()}</span>`
+  ).join('');
+
+  // Applied or not
+  const applyBtn = document.getElementById('jdApplyBtn');
+  const appliedNote = document.getElementById('jdAppliedNote');
+  if (job.applied) {
+    applyBtn.style.display = 'none';
+    appliedNote.classList.remove('hidden');
+  } else {
+    applyBtn.style.display = 'block';
+    appliedNote.classList.add('hidden');
+  }
+
+  document.getElementById('jobDetailModal').classList.remove('hidden');
+}
+
+function closeJobDetail() {
+  document.getElementById('jobDetailModal').classList.add('hidden');
+  currentDetailJobId = null;
+}
+
+function applyFromDetail() {
+  const job = jobsList.find(j => j.id === currentDetailJobId);
+  if (!job) return;
+  closeJobDetail();
+  // Find job title and open apply modal
+  openApplyModal(job.id, job.title);
+}
+
+document.getElementById('jobDetailModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('jobDetailModal')) closeJobDetail();
+});
+
+// ── Notification panel ──────────────────────────────────────
+let notifsList = [];
+try { notifsList = JSON.parse(document.getElementById('notifData').textContent); } catch(e){}
+
+function toggleNotifPanel() {
+  document.getElementById('notifPanel').classList.toggle('hidden');
+}
+document.addEventListener('click', e => {
+  const p = document.getElementById('notifPanel');
+  if (!p.classList.contains('hidden') && !p.contains(e.target) && !document.getElementById('bellBtn').contains(e.target))
+    p.classList.add('hidden');
+});
+async function markAllRead() {
+  await fetch('/notifications/mark_read', {method:'POST'});
+  location.reload();
+}
+function openMessage(idx) {
+  const n = notifsList[idx];
+  if (!n) return;
+  const cfgs = {
+    success: {icon:'fa-check-circle', bg:'rgba(74,222,128,.15)', color:'#22c55e'},
+    warning: {icon:'fa-triangle-exclamation', bg:'rgba(245,158,11,.15)', color:'#f59e0b'},
+    danger:  {icon:'fa-times-circle', bg:'rgba(239,68,68,.15)', color:'#ef4444'},
+    info:    {icon:'fa-bell', bg:'rgba(96,165,250,.15)', color:'#3b82f6'},
+  };
+  const cfg = cfgs[n.notif_type] || cfgs.info;
+  const icon = document.getElementById('msgReaderIcon');
+  icon.style.cssText = `width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${cfg.bg};color:${cfg.color};`;
+  icon.innerHTML = `<i class="fas ${cfg.icon} text-sm"></i>`;
+  document.getElementById('msgReaderTitle').textContent = n.title;
+  document.getElementById('msgReaderTime').textContent = n.created_at;
+  document.getElementById('msgReaderBody').textContent = n.plain_text;
+  document.getElementById('msgReaderModal').classList.remove('hidden');
+  document.getElementById('notifPanel').classList.add('hidden');
+  fetch('/notifications/mark_read', {method:'POST'});
+}
+function closeMsgReader() { document.getElementById('msgReaderModal').classList.add('hidden'); }
+document.getElementById('msgReaderModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('msgReaderModal')) closeMsgReader();
+});
+
+// ── Theme ───────────────────────────────────────────────────
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  fetch('/user/settings', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body: `action=profile&theme=${t}&name={{ current_user.name|e }}`}).then(() => location.reload());
+}
+
+// ── Apply modal ─────────────────────────────────────────────
+let currentJobId = null;
+function openApplyModal(jobId, title) {
+  currentJobId = jobId;
+  document.getElementById('modalJobTitle').textContent = 'Apply: ' + title;
+  document.getElementById('cvFile').value = '';
+  document.getElementById('fileName').textContent = '';
+  document.getElementById('applyBtn').disabled = true;
+  document.getElementById('progressBar').classList.add('hidden');
+  document.getElementById('resultPanel').classList.add('hidden');
+  document.getElementById('applyModal').classList.remove('hidden');
+}
+function closeApplyModal() { document.getElementById('applyModal').classList.add('hidden'); }
+document.getElementById('applyModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('applyModal')) closeApplyModal();
+});
+function handleFileSelect(input) {
+  if (input.files[0]) {
+    document.getElementById('fileName').textContent = '📎 ' + input.files[0].name;
+    document.getElementById('applyBtn').disabled = false;
+  }
+}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadArea').classList.add('dragging'); }
+function handleDrop(e) {
+  e.preventDefault(); document.getElementById('uploadArea').classList.remove('dragging');
+  const f = e.dataTransfer.files[0];
+  if (f) { document.getElementById('cvFile').files = e.dataTransfer.files; document.getElementById('fileName').textContent = '📎 ' + f.name; document.getElementById('applyBtn').disabled = false; }
+}
+function setProgress(label, pct) {
+  document.getElementById('progressBar').classList.remove('hidden');
+  document.getElementById('progressLabel').textContent = label;
+  document.getElementById('progressPercent').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+const delay = ms => new Promise(r => setTimeout(r, ms));
+async function submitApplication() {
+  const file = document.getElementById('cvFile').files[0];
+  if (!file || !currentJobId) return;
+  const btn = document.getElementById('applyBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+  document.getElementById('resultPanel').classList.add('hidden');
+  setProgress('Uploading CV...', 20); await delay(400);
+  setProgress('Extracting text...', 50);
+  const fd = new FormData(); fd.append('cv', file);
+  try {
+    setProgress('AI matching...', 75);
+    const res = await fetch(`/apply/${currentJobId}`, {method:'POST', body:fd});
+    const data = await res.json();
+    setProgress('Done!', 100); await delay(300);
+    document.getElementById('progressBar').classList.add('hidden');
+    if (data.error) showError(data.error);
+    else { showResult(data); setTimeout(() => location.reload(), 3500); }
+  } catch(e) { showError('Network error. Please try again.'); }
+  btn.innerHTML = '<i class="fas fa-brain mr-2"></i>Analyze & Submit CV'; btn.disabled = true;
+}
+function showResult(data) {
+  const panel = document.getElementById('resultPanel'); panel.classList.remove('hidden');
+  const clr = data.eligible ? '#22c55e' : '#ef4444';
+  const tier_labels = ['','Same City (Tier 1)','Nearby City (Tier 2)','Other City (Tier 3)'];
+  document.getElementById('scoreRing').innerHTML = `<div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(${clr} ${data.score*3.6}deg,rgba(128,128,128,.15) 0);position:relative;display:flex;align-items:center;justify-content:center;"><div style="position:absolute;inset:8px;background:var(--modal);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="color:${clr};font-size:14px;font-weight:800">${data.score}%</span></div></div>`;
+  document.getElementById('eligibilityStatus').innerHTML = `<span style="color:${clr}">${data.status}</span>`;
+  document.getElementById('tierLabel').textContent = tier_labels[data.tier] || '';
+  document.getElementById('matchedSkillsWrap').innerHTML = data.matched_skills.map(s =>
+    `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.2)">✓ ${s}</span>`).join('');
+  document.getElementById('chatNotif').style.display = 'block';
+}
+function showError(msg) {
+  const p = document.getElementById('resultPanel'); p.classList.remove('hidden');
+  p.innerHTML = `<div style="display:flex;align-items:center;gap:12px;color:#ef4444"><i class="fas fa-triangle-exclamation text-xl"></i><div><p style="font-weight:600;font-size:14px">Error</p><p style="font-size:12px;color:var(--muted);margin-top:2px">${msg}</p></div></div>`;
+  document.getElementById('applyBtn').disabled = false;
+  document.getElementById('applyBtn').innerHTML = '<i class="fas fa-brain mr-2"></i>Analyze & Submit CV';
+}
+
+// ── Chatbot ─────────────────────────────────────────────────
+let chatOpen = false;
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatWindow').classList.toggle('hidden', !chatOpen);
+  document.getElementById('chatIcon').className = chatOpen ? 'fas fa-times text-xl text-white' : 'fas fa-comments text-xl text-white';
+}
+function sendQuick(t) { document.getElementById('chatInput').value = t; sendMessage(); }
+async function sendMessage() {
+  const inp = document.getElementById('chatInput'); const msg = inp.value.trim(); if (!msg) return; inp.value = '';
+  appendChatMsg(msg, 'user'); const typing = appendTyping();
+  try {
+    const r = await fetch('/chatbot', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg})});
+    const d = await r.json(); typing.remove(); appendChatMsg(d.response || 'No response.', 'bot');
+  } catch { typing.remove(); appendChatMsg('Network error.', 'bot'); }
+}
+function appendChatMsg(text, type) {
+  const b = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = `chat-msg ${type} p-3 text-xs chat-msg-text`;
+  d.style.whiteSpace = 'pre-wrap'; d.textContent = text;
+  b.appendChild(d); b.scrollTop = b.scrollHeight; return d;
+}
+function appendTyping() {
+  const b = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'chat-msg bot p-3 flex gap-1.5 items-center';
+  d.innerHTML = [1,2,3].map(i => `<span style="width:7px;height:7px;border-radius:50%;background:#a78bfa;display:inline-block;animation:tb 1.2s infinite ${(i-1)*.2}s"></span>`).join('');
+  b.appendChild(d); b.scrollTop = b.scrollHeight; return d;
+}
+const s = document.createElement('style');
+s.textContent = '@keyframes tb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}';
+document.head.appendChild(s);
+setInterval(async () => {
+  try { const r = await fetch('/notifications/count'); const d = await r.json();
+    if (d.count > 0) document.getElementById('chatNotif').style.display = 'block';
+  } catch {}
+}, 30000);
+</script>
+</body>
+</html>

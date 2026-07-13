@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_user.theme or 'dark' }}">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidates — CV Guard Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*{font-family:'Inter',sans-serif;}
+:root{--bg:#080818;--sidebar:#0d0d22;--card:rgba(255,255,255,.05);--card-solid:#12122a;--border:rgba(255,255,255,.09);--text:#f1f5f9;--text2:#cbd5e1;--muted:#94a3b8;--input:rgba(255,255,255,.08);}
+[data-theme="light"]{--bg:#f8fafc;--sidebar:#1e293b;--card:#ffffff;--card-solid:#ffffff;--border:#e2e8f0;--text:#0f172a;--text2:#334155;--muted:#64748b;--input:#f1f5f9;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.sidebar{background:var(--sidebar);border-right:1px solid var(--border);width:240px;}
+.nav-item{border-radius:12px;transition:all .2s;color:#94a3b8;}
+.nav-item:hover{background:rgba(124,58,237,.2);color:#a78bfa;}
+.nav-item.active{background:rgba(124,58,237,.25);color:#c4b5fd;}
+.glass{background:var(--card);border:1px solid var(--border);}
+.table-head{background:rgba(124,58,237,.07);border-bottom:1px solid var(--border);}
+[data-theme="light"] .table-head{background:rgba(109,40,217,.04);}
+.th{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:12px 20px;}
+.tr{border-bottom:1px solid var(--border);transition:background .15s;}
+.tr:hover{background:rgba(124,58,237,.05);}
+.td{padding:12px 20px;color:var(--text);font-size:13px;}
+.td-muted{padding:12px 20px;color:var(--muted);font-size:12px;}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;transition:all .2s;}
+.btn-danger:hover{background:rgba(239,68,68,.2);}
+[data-theme="light"] .btn-danger{background:rgba(220,38,38,.07);color:#dc2626;border-color:rgba(220,38,38,.2);}
+.btn-blue{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#3b82f6;transition:all .2s;}
+.btn-blue:hover{background:rgba(59,130,246,.2);}
+[data-theme="light"] .btn-blue{background:rgba(37,99,235,.07);color:#2563eb;border-color:rgba(37,99,235,.2);}
+.input-field{background:var(--input);border:1px solid var(--border);color:var(--text);}
+.input-field:focus{border-color:#7c3aed;outline:none;}
+.input-field::placeholder{color:var(--muted);}
+.modal-overlay{background:rgba(0,0,0,.78);backdrop-filter:blur(12px);}
+.modal-box{background:var(--card-solid);border:1px solid var(--border);}
+.modal-title{color:var(--text);font-weight:700;}
+.flash-ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#16a34a;}
+.flash-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;}
+[data-theme="light"] .flash-ok{background:rgba(22,163,74,.07);color:#15803d;}
+[data-theme="light"] .flash-err{background:rgba(220,38,38,.07);color:#b91c1c;}
+.fade-in{animation:fadeIn .35s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+<aside class="sidebar flex-shrink-0 flex flex-col p-4 overflow-y-auto">
+  <div class="flex items-center gap-2.5 mb-8 mt-1">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><i class="fas fa-shield-halved text-white text-sm"></i></div>
+    <div><p class="font-black text-sm" style="color:#f1f5f9">CV Guard</p><p class="text-xs text-purple-400">Admin Panel</p></div>
+  </div>
+  <nav class="space-y-1 flex-1">
+    <a href="{{ url_for('admin_dashboard') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm"><i class="fas fa-gauge-high w-4"></i>Dashboard</a>
+    <a href="{{ url_for('admin_users') }}" class="nav-item active flex items-center gap-3 px-4 py-2.5 text-sm"><i class="fas fa-users w-4"></i>Candidates</a>
+    <a href="{{ url_for('admin_settings') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm"><i class="fas fa-gear w-4"></i>Settings</a>
+  </nav>
+  <div class="mt-auto pt-4" style="border-top:1px solid rgba(255,255,255,.1)">
+    <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm"><i class="fas fa-right-from-bracket w-4"></i>Logout</a>
+  </div>
+</aside>
+
+<main class="flex-1 overflow-y-auto p-6">
+  <div class="flex items-center justify-between mb-5">
+    <div><h1 class="text-2xl font-bold" style="color:var(--text)">Registered Candidates</h1><p class="text-sm mt-0.5" style="color:var(--muted)">{{ users|length }} total candidates</p></div>
+    <div class="relative">
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color:var(--muted)"></i>
+      <input type="text" id="userSearch" placeholder="Search by name or email..." onkeyup="filterUsers()" class="input-field pl-9 pr-4 py-2 rounded-xl text-sm w-56">
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}
+    <div class="mb-4 px-4 py-3 rounded-xl text-sm fade-in flex items-center gap-2 {% if cat=='error' %}flash-err{% else %}flash-ok{% endif %}">
+      <i class="fas {% if cat=='error' %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %}"></i>{{ msg }}
+    </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="glass rounded-2xl overflow-hidden">
+    <table class="w-full">
+      <thead class="table-head">
+        <tr>
+          <th class="th text-left">#</th>
+          <th class="th text-left">Candidate</th>
+          <th class="th text-left">Email</th>
+          <th class="th text-left">City / Priority</th>
+          <th class="th text-left">Applications</th>
+          <th class="th text-left">Joined</th>
+          <th class="th text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr class="tr user-row" data-name="{{ user.name.lower() }}" data-email="{{ user.email.lower() }}">
+          <td class="td-muted">{{ loop.index }}</td>
+          <td class="td">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                style="background:linear-gradient(135deg,#7c3aed,#ec4899)">{{ user.name[0].upper() }}</div>
+              <span class="font-semibold">{{ user.name }}</span>
+            </div>
+          </td>
+          <td class="td-muted">{{ user.email }}</td>
+          <td class="td">
+            {% set city_l = (user.city or '').lower() %}
+            {% if 'rawalpindi' in city_l or 'pindi' in city_l %}
+              <span class="badge" style="background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)"><i class="fas fa-map-pin mr-1"></i>{{ user.city }} — Tier 1</span>
+            {% elif city_l in ['islamabad','jhelum','peshawar','attock','taxila','wah cantt','chakwal','nowshera','mardan'] %}
+              <span class="badge" style="background:rgba(59,130,246,.1);color:#3b82f6;border:1px solid rgba(59,130,246,.2)"><i class="fas fa-map-pin mr-1"></i>{{ user.city }} — Tier 2</span>
+            {% elif user.city %}
+              <span class="badge" style="background:rgba(124,58,237,.08);color:#a78bfa;border:1px solid rgba(124,58,237,.2)"><i class="fas fa-map-pin mr-1"></i>{{ user.city }}</span>
+            {% else %}
+              <span class="badge" style="background:rgba(128,128,128,.1);color:var(--muted)">Not set</span>
+            {% endif %}
+          </td>
+          <td class="td">
+            <span class="font-semibold">{{ user.applications|length }}</span>
+            {% if user.applications %}
+            <span class="text-xs ml-1" style="color:var(--muted)">({{ user.applications|selectattr('is_eligible')|list|length }} eligible)</span>
+            {% endif %}
+          </td>
+          <td class="td-muted">{{ user.created_at.strftime('%d %b %Y') }}</td>
+          <td class="td text-right">
+            <div class="flex items-center justify-end gap-2">
+              <button onclick="openResetModal({{ user.id }},'{{ user.name|e }}')"
+                class="btn-blue px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+                <i class="fas fa-key"></i>Reset PW
+              </button>
+              <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}"
+                    onsubmit="return confirm('Delete {{ user.name|e }} and all their applications?')">
+                <button class="btn-danger px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+                  <i class="fas fa-trash"></i>Delete
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="td text-center py-12" style="color:var(--muted)">No candidates registered yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Reset Password Modal -->
+<div id="resetModal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+  <div class="modal-box rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <div><h3 class="modal-title">Reset User Password</h3><p class="text-xs mt-0.5" id="resetUserName" style="color:var(--muted)"></p></div>
+      <button onclick="closeResetModal()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10" style="color:var(--muted)"><i class="fas fa-times text-sm"></i></button>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="block text-xs font-semibold mb-1.5 uppercase" style="color:var(--muted)">New Password</label>
+        <input type="text" id="resetPwVal" value="Reset@123" class="input-field w-full px-4 py-2.5 rounded-xl text-sm">
+      </div>
+      <div class="p-3 rounded-xl text-xs" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--text2)">
+        <i class="fas fa-triangle-exclamation text-yellow-500 mr-1.5"></i>User will receive a notification with the new password and must change it.
+      </div>
+      <div class="flex gap-3 pt-1">
+        <button onclick="closeResetModal()" class="flex-1 py-2.5 rounded-xl text-sm border" style="border-color:var(--border);color:var(--muted)">Cancel</button>
+        <button onclick="doReset()" id="resetBtn" class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><i class="fas fa-key mr-1"></i>Reset Password</button>
+      </div>
+      <div id="resetSuccess" class="hidden p-3 rounded-xl text-xs text-center text-green-400" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2)">
+        <i class="fas fa-check-circle mr-1"></i>Password reset! User has been notified.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let resetUserId = null;
+function filterUsers(){
+  const q=document.getElementById('userSearch').value.toLowerCase();
+  document.querySelectorAll('.user-row').forEach(r=>r.style.display=(r.dataset.name.includes(q)||r.dataset.email.includes(q))?'':'none');
+}
+function openResetModal(id,name){
+  resetUserId=id;
+  document.getElementById('resetUserName').textContent='User: '+name;
+  document.getElementById('resetSuccess').classList.add('hidden');
+  document.getElementById('resetBtn').disabled=false;
+  document.getElementById('resetModal').classList.remove('hidden');
+}
+function closeResetModal(){document.getElementById('resetModal').classList.add('hidden');}
+document.getElementById('resetModal').addEventListener('click',e=>{if(e.target===document.getElementById('resetModal'))closeResetModal();});
+async function doReset(){
+  const pw=document.getElementById('resetPwVal').value.trim();
+  if(!pw||pw.length<6){alert('Password must be at least 6 characters');return;}
+  const btn=document.getElementById('resetBtn');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin mr-1"></i>Resetting...';
+  try{
+    const r=await fetch(`/admin/reset_user_password/${resetUserId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({new_password:pw})});
+    const d=await r.json();
+    if(d.success){document.getElementById('resetSuccess').classList.remove('hidden');setTimeout(()=>closeResetModal(),2000);}
+    else{alert('Error: '+(d.error||'Unknown'));}
+  }catch(e){alert('Network error');}
+  btn.disabled=false;btn.innerHTML='<i class="fas fa-key mr-1"></i>Reset Password';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_user.theme or 'dark' }}">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — CV Guard Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*{font-family:'Inter',sans-serif;}
+:root{--bg:#080818;--sidebar:#0d0d22;--card:rgba(255,255,255,.05);--card-solid:#12122a;--border:rgba(255,255,255,.09);--text:#f1f5f9;--text2:#cbd5e1;--muted:#94a3b8;--input:rgba(255,255,255,.08);--modal:#13132a;}
+[data-theme="light"]{--bg:#f8fafc;--sidebar:#1e293b;--card:#ffffff;--card-solid:#ffffff;--border:#e2e8f0;--text:#0f172a;--text2:#334155;--muted:#64748b;--input:#f1f5f9;--modal:#ffffff;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.sidebar{background:var(--sidebar);border-right:1px solid var(--border);width:240px;}
+.nav-item{border-radius:12px;transition:all .2s;color:#94a3b8;}
+.nav-item:hover{background:rgba(124,58,237,.2);color:#a78bfa;}
+.nav-item.active{background:rgba(124,58,237,.25);color:#c4b5fd;}
+.card{background:var(--card);border:1px solid var(--border);}
+.card-title{color:var(--text);font-weight:700;font-size:15px;}
+.input-field{background:var(--input);border:1px solid var(--border);color:var(--text);}
+.input-field:focus{border-color:#7c3aed;outline:none;box-shadow:0 0 0 2px rgba(124,58,237,.15);}
+.input-field::placeholder{color:var(--muted);}
+select.input-field option{background:var(--card-solid);color:var(--text);}
+.input-label{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.btn-primary{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;transition:all .3s;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;transition:all .2s;}
+.btn-danger:hover{background:rgba(239,68,68,.2);}
+[data-theme="light"] .btn-danger{background:rgba(220,38,38,.07);color:#dc2626;border-color:rgba(220,38,38,.2);}
+.info-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;}
+.info-row span:first-child{color:var(--muted);}
+.info-row span:last-child{color:var(--text);font-weight:600;}
+.cat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;}
+.cat-name{color:var(--text);font-size:13px;font-weight:600;}
+.cat-count{color:var(--muted);font-size:12px;}
+.cat-icon-btn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;background:var(--input);border:2px solid transparent;color:var(--muted);}
+.cat-icon-btn:hover{border-color:rgba(124,58,237,.4);color:#a78bfa;}
+.cat-icon-btn.selected{border-color:#7c3aed;background:rgba(124,58,237,.15);color:#a78bfa;}
+.theme-card{border:2px solid var(--border);border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;}
+.theme-card:hover{border-color:rgba(124,58,237,.4);}
+.theme-card.selected{border-color:#7c3aed;background:rgba(124,58,237,.08);}
+.theme-label{color:var(--text);font-size:13px;font-weight:600;margin-top:8px;}
+.theme-sub{color:var(--muted);font-size:11px;margin-top:2px;}
+.range-track{-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:linear-gradient(to right,#7c3aed 0%,#7c3aed var(--val,30%),rgba(128,128,128,.2) var(--val,30%));outline:none;width:100%;}
+.range-track::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4f46e5);cursor:pointer;box-shadow:0 2px 8px rgba(124,58,237,.5);}
+.strength-bar{height:4px;border-radius:2px;transition:all .4s;}
+.network-box{background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.2);border-radius:14px;padding:16px;}
+.flash-ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#16a34a;}
+.flash-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;}
+[data-theme="light"] .flash-ok{background:rgba(22,163,74,.07);color:#15803d;}
+[data-theme="light"] .flash-err{background:rgba(220,38,38,.07);color:#b91c1c;}
+.fade-in{animation:fadeIn .35s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+<!-- Sidebar -->
+<aside class="sidebar flex-shrink-0 flex flex-col p-4 overflow-y-auto">
+  <div class="flex items-center gap-2.5 mb-8 mt-1">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)"><i class="fas fa-shield-halved text-white text-sm"></i></div>
+    <div><p class="font-black text-sm" style="color:#f1f5f9">CV Guard</p><p class="text-xs text-purple-400">Admin Panel</p></div>
+  </div>
+  <nav class="space-y-1 flex-1">
+    <a href="{{ url_for('admin_dashboard') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm"><i class="fas fa-gauge-high w-4"></i>Dashboard</a>
+    <a href="{{ url_for('admin_users') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm"><i class="fas fa-users w-4"></i>Candidates</a>
+    <a href="{{ url_for('admin_settings') }}" class="nav-item active flex items-center gap-3 px-4 py-2.5 text-sm"><i class="fas fa-gear w-4"></i>Settings</a>
+  </nav>
+  <div class="mt-auto pt-4" style="border-top:1px solid rgba(255,255,255,.1)">
+    <a href="{{ url_for('logout') }}" class="nav-item flex items-center gap-3 px-4 py-2.5 text-sm"><i class="fas fa-right-from-bracket w-4"></i>Logout</a>
+  </div>
+</aside>
+
+<main class="flex-1 overflow-y-auto p-6">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold mb-0.5" style="color:var(--text)">Platform Settings</h1>
+    <p class="text-sm mb-6" style="color:var(--muted)">Configure CV Guard recruitment platform</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat,msg in messages %}
+      <div class="mb-4 px-4 py-3 rounded-xl text-sm fade-in flex items-center gap-2 {% if cat=='error' %}flash-err{% else %}flash-ok{% endif %}">
+        <i class="fas {% if cat=='error' %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %}"></i>{{ msg }}
+      </div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('admin_settings') }}" class="space-y-5">
+      <!-- Theme -->
+      <div class="card rounded-2xl p-5 fade-in">
+        <h2 class="card-title mb-4"><i class="fas fa-palette text-purple-500 mr-2"></i>Appearance</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="cursor-pointer">
+            <input type="radio" name="theme" value="dark" {% if current_user.theme != 'light' %}checked{% endif %} class="sr-only">
+            <div class="theme-card {% if current_user.theme != 'light' %}selected{% endif %}">
+              <div class="w-full h-14 rounded-lg overflow-hidden relative" style="background:#080818;border:1px solid rgba(255,255,255,.1)">
+                <div class="absolute top-2 left-2 right-2 h-1.5 rounded" style="background:#7c3aed;opacity:.7"></div>
+                <div class="absolute top-5 left-2 right-8 h-1 rounded" style="background:rgba(255,255,255,.12)"></div>
+                <div class="absolute top-8 left-2 right-4 h-1 rounded" style="background:rgba(255,255,255,.07)"></div>
+              </div>
+              <p class="theme-label"><i class="fas fa-moon text-purple-400 mr-1"></i>Dark Mode</p>
+              <p class="theme-sub">Professional dark interface</p>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="theme" value="light" {% if current_user.theme == 'light' %}checked{% endif %} class="sr-only">
+            <div class="theme-card {% if current_user.theme == 'light' %}selected{% endif %}">
+              <div class="w-full h-14 rounded-lg overflow-hidden relative" style="background:#f8fafc;border:1px solid #e2e8f0">
+                <div class="absolute top-2 left-2 right-2 h-1.5 rounded" style="background:#7c3aed;opacity:.5"></div>
+                <div class="absolute top-5 left-2 right-8 h-1 rounded bg-slate-300"></div>
+                <div class="absolute top-8 left-2 right-4 h-1 rounded bg-slate-200"></div>
+              </div>
+              <p class="theme-label"><i class="fas fa-sun text-yellow-500 mr-1"></i>Light Mode</p>
+              <p class="theme-sub">Clean bright interface</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Eligibility Threshold -->
+      <div class="card rounded-2xl p-5 fade-in" style="animation-delay:.08s">
+        <h2 class="card-title mb-1"><i class="fas fa-sliders text-blue-500 mr-2"></i>Eligibility Threshold</h2>
+        <p class="text-xs mb-4" style="color:var(--muted)">Candidates must score at or above this % to be marked Eligible. Changing this instantly re-evaluates all existing applications.</p>
+        <div class="flex items-center gap-4">
+          <input type="range" name="threshold" id="tRange" min="0" max="100" step="5"
+            value="{{ threshold|int }}" oninput="updateT(this.value)"
+            class="range-track flex-1" style="--val:{{ threshold }}%">
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)">
+            <span class="text-white font-black text-lg" id="tDisplay">{{ threshold|int }}%</span>
+          </div>
+        </div>
+        <div class="flex justify-between text-xs mt-2" style="color:var(--muted)">
+          <span>0% — All pass</span><span>50% — Moderate</span><span>100% — Strict</span>
+        </div>
+        <div class="mt-3 p-3 rounded-xl text-xs" style="background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);color:var(--text2)">
+          <i class="fas fa-info-circle text-blue-500 mr-1.5"></i>
+          Current: <strong id="tNote">Score ≥ {{ threshold|int }}% = Eligible ✓</strong> — Recommended: 30–50%
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary w-full py-3 rounded-xl text-sm font-semibold"><i class="fas fa-save mr-2"></i>Save Settings</button>
+    </form>
+
+    <!-- Job Categories -->
+    <div class="card rounded-2xl p-5 mt-5 fade-in" style="animation-delay:.16s">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="card-title"><i class="fas fa-tags text-orange-500 mr-2"></i>Job Categories</h2>
+        <button onclick="document.getElementById('addCatForm').classList.toggle('hidden')" class="text-xs px-3 py-1.5 rounded-lg font-semibold" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:#7c3aed"><i class="fas fa-plus mr-1"></i>Add</button>
+      </div>
+      <!-- Add form -->
+      <form id="addCatForm" method="POST" action="{{ url_for('add_category') }}" class="hidden mb-4 p-4 rounded-xl space-y-3" style="background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.15)">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="input-label block mb-1">Category Name</label>
+            <input type="text" name="name" required placeholder="e.g. Cybersecurity" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="input-label block mb-1">Color</label>
+            <select name="color" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
+              <option value="purple">Purple</option><option value="blue">Blue</option><option value="green">Green</option>
+              <option value="red">Red</option><option value="orange">Orange</option><option value="yellow">Yellow</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="input-label block mb-2">Icon</label>
+          <div class="flex flex-wrap gap-2" id="iconPicker">
+            {% for ic in ['fa-laptop-code','fa-gears','fa-coins','fa-stethoscope','fa-graduation-cap','fa-bullhorn','fa-palette','fa-users','fa-scale-balanced','fa-headset','fa-lock','fa-flask','fa-truck','fa-plane','fa-wifi','fa-building'] %}
+            <button type="button" onclick="selectIcon('{{ ic }}')" class="cat-icon-btn" title="{{ ic }}"><i class="fas {{ ic }}"></i></button>
+            {% endfor %}
+          </div>
+          <input type="hidden" name="icon" id="selectedIcon" value="fa-briefcase">
+        </div>
+        <button type="submit" class="btn-primary px-4 py-2 rounded-xl text-xs font-semibold"><i class="fas fa-plus mr-1"></i>Add Category</button>
+      </form>
+      <!-- List -->
+      {% if not categories %}<p class="text-sm text-center py-6" style="color:var(--muted)">No categories yet.</p>
+      {% else %}
+      <div class="grid grid-cols-2 gap-2">
+        {% for cat in categories %}
+        <div class="cat-card">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(124,58,237,.12)"><i class="fas {{ cat.icon }} text-purple-500 text-sm"></i></div>
+            <div><p class="cat-name">{{ cat.name }}</p><p class="cat-count">{{ cat.jobs|length }} jobs</p></div>
+          </div>
+          <form method="POST" action="{{ url_for('delete_category', cat_id=cat.id) }}" onsubmit="return confirm('Delete category?')">
+            <button class="btn-danger px-2 py-1 rounded-lg text-xs"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Admin Password Change -->
+    <div class="card rounded-2xl p-5 mt-5 fade-in" style="animation-delay:.24s">
+      <h2 class="card-title mb-1"><i class="fas fa-lock text-red-500 mr-2"></i>Change Admin Password</h2>
+      <p class="text-xs mb-4" style="color:var(--muted)">Update your administrator account password securely.</p>
+      <form method="POST" action="{{ url_for('admin_change_password') }}" class="space-y-3" id="adminPwForm">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="input-label block mb-1">Current Password</label>
+            <div class="relative"><input type="password" name="current_password" id="ap1" required placeholder="Current" class="input-field w-full px-3 py-2.5 rounded-xl text-sm pr-9">
+              <button type="button" onclick="tpw('ap1','ae1')" class="absolute right-3 top-1/2 -translate-y-1/2" style="color:var(--muted)"><i class="fas fa-eye text-xs" id="ae1"></i></button></div>
+          </div>
+          <div>
+            <label class="input-label block mb-1">New Password</label>
+            <div class="relative"><input type="password" name="new_password" id="ap2" required placeholder="New (min 6)" oninput="aStr(this.value)" class="input-field w-full px-3 py-2.5 rounded-xl text-sm pr-9">
+              <button type="button" onclick="tpw('ap2','ae2')" class="absolute right-3 top-1/2 -translate-y-1/2" style="color:var(--muted)"><i class="fas fa-eye text-xs" id="ae2"></i></button></div>
+            <div class="flex gap-1 mt-1.5"><div class="strength-bar flex-1" id="as1" style="background:rgba(128,128,128,.2)"></div><div class="strength-bar flex-1" id="as2" style="background:rgba(128,128,128,.2)"></div><div class="strength-bar flex-1" id="as3" style="background:rgba(128,128,128,.2)"></div><div class="strength-bar flex-1" id="as4" style="background:rgba(128,128,128,.2)"></div></div>
+          </div>
+          <div>
+            <label class="input-label block mb-1">Confirm New</label>
+            <div class="relative"><input type="password" name="confirm_password" id="ap3" required placeholder="Repeat new" oninput="aMatch()" class="input-field w-full px-3 py-2.5 rounded-xl text-sm pr-9">
+              <button type="button" onclick="tpw('ap3','ae3')" class="absolute right-3 top-1/2 -translate-y-1/2" style="color:var(--muted)"><i class="fas fa-eye text-xs" id="ae3"></i></button></div>
+            <p class="text-xs mt-1 hidden" id="amsg"></p>
+          </div>
+        </div>
+        <button type="submit" class="px-5 py-2.5 rounded-xl text-white text-sm font-semibold" style="background:linear-gradient(135deg,#dc2626,#991b1b)"><i class="fas fa-key mr-2"></i>Update Password</button>
+      </form>
+    </div>
+
+    <!-- Platform Info -->
+    <div class="card rounded-2xl p-5 mt-5 fade-in" style="animation-delay:.32s">
+      <h2 class="card-title mb-3"><i class="fas fa-circle-info text-green-500 mr-2"></i>Platform Info</h2>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        {% for lbl,val,clr in [('AI Engine','TF-IDF + Cosine Similarity','green'),('OCR Engine','Tesseract + pdfplumber','blue'),('Location System','Dynamic 3-Tier Proximity','purple'),('Version','CV Guard v1.0 FYP','yellow')] %}
+        <div class="p-3 rounded-xl" style="background:rgba({{ {'green':'34,197,94','blue':'59,130,246','purple':'124,58,237','yellow':'245,158,11'}[clr] }},.06);border:1px solid rgba({{ {'green':'34,197,94','blue':'59,130,246','purple':'124,58,237','yellow':'245,158,11'}[clr] }},.15)">
+          <p class="text-xs font-semibold mb-0.5" style="color:{{ {'green':'#22c55e','blue':'#3b82f6','purple':'#a78bfa','yellow':'#f59e0b'}[clr] }}">{{ lbl }}</p>
+          <p style="color:var(--text)">{{ val }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Network Info -->
+    <div class="mt-5 network-box fade-in" style="animation-delay:.4s">
+      <h2 class="card-title mb-1" style="color:var(--text)"><i class="fas fa-wifi text-cyan-500 mr-2"></i>Multi-Device Network Access</h2>
+      <p class="text-xs mb-3" style="color:var(--muted)">Other devices on the same WiFi can access CV Guard at the Network URL below.</p>
+      <div id="netInfo" class="space-y-2 text-sm" style="color:var(--text2)">
+        <p style="color:var(--muted)">Loading network info...</p>
+      </div>
+      <div class="mt-3 p-3 rounded-xl text-xs space-y-1" style="background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted)">
+        <p class="font-semibold" style="color:var(--text)">How to use on multiple devices:</p>
+        <p><span class="text-cyan-500 font-medium">Step 1:</span> All devices must be on the <strong>same WiFi</strong></p>
+        <p><span class="text-cyan-500 font-medium">Step 2:</span> Open the Network URL on any phone or laptop</p>
+        <p><span class="text-cyan-500 font-medium">Step 3:</span> Users register, login, upload CVs from their device</p>
+        <p><span class="text-cyan-500 font-medium">Step 4:</span> All data syncs in real-time — admin sees everything here</p>
+        <p class="text-yellow-500 mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>For internet access, deploy on Railway, Render, or Heroku (free)</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+function updateT(v){document.getElementById('tDisplay').textContent=v+'%';document.getElementById('tNote').textContent='Score ≥ '+v+'% = Eligible ✓';document.getElementById('tRange').style.setProperty('--val',v+'%');}
+function selectIcon(ic){document.getElementById('selectedIcon').value=ic;document.querySelectorAll('.cat-icon-btn').forEach(b=>b.classList.remove('selected'));event.currentTarget.classList.add('selected');}
+function tpw(id,eid){const f=document.getElementById(id),e=document.getElementById(eid);f.type=f.type==='password'?'text':'password';e.className=f.type==='text'?'fas fa-eye-slash text-xs':'fas fa-eye text-xs';}
+function aStr(pw){let s=0;if(pw.length>=6)s++;if(pw.length>=10)s++;if(/[A-Z]/.test(pw)&&/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;const c=['rgba(128,128,128,.2)','#ef4444','#f59e0b','#3b82f6','#22c55e'];[1,2,3,4].forEach(i=>{document.getElementById('as'+i).style.background=i<=s?c[s]:'rgba(128,128,128,.2)';});}
+function aMatch(){const n=document.getElementById('ap2').value,c=document.getElementById('ap3').value,m=document.getElementById('amsg');if(!c){m.classList.add('hidden');return;}m.classList.remove('hidden');m.textContent=n===c?'✓ Match':'✗ No match';m.style.color=n===c?'#22c55e':'#ef4444';}
+document.getElementById('adminPwForm').addEventListener('submit',e=>{if(document.getElementById('ap2').value!==document.getElementById('ap3').value){e.preventDefault();document.getElementById('amsg').textContent='✗ Passwords do not match';document.getElementById('amsg').style.color='#ef4444';document.getElementById('amsg').classList.remove('hidden');}});
+async function loadNet(){try{const r=await fetch('/network_info');const d=await r.json();document.getElementById('netInfo').innerHTML=`<div class="flex items-center justify-between p-2.5 rounded-lg" style="background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2)"><span style="color:var(--muted)">Network URL (share this):</span><div class="flex items-center gap-2"><strong class="text-cyan-400 font-mono text-sm">${d.url}</strong><button onclick="navigator.clipboard.writeText('${d.url}').then(()=>alert('Copied!'))" class="text-xs px-2 py-1 rounded text-cyan-400" style="background:rgba(6,182,212,.15)"><i class="fas fa-copy"></i></button></div></div><div class="flex gap-4 text-xs" style="color:var(--muted)"><span>IP: <strong style="color:var(--text)">${d.local_ip}</strong></span><span>Port: <strong style="color:var(--text)">5000</strong></span></div>`;}catch(e){document.getElementById('netInfo').innerHTML='<p style="color:#ef4444">Could not detect network — run the server to see your IP.</p>';}}
+document.addEventListener('DOMContentLoaded',loadNet);
+</script>
+</body>
+</html>

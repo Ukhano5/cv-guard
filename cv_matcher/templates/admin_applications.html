@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_user.theme or 'dark' }}">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Applications — {{ job.title }} | CV Guard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*{font-family:'Inter',sans-serif;}
+:root{--bg:#080818;--card:rgba(255,255,255,.05);--card-solid:#12122a;--border:rgba(255,255,255,.09);--text:#f1f5f9;--text2:#cbd5e1;--muted:#94a3b8;--input:rgba(255,255,255,.08);--modal:#13132a;--shadow:rgba(0,0,0,.5);}
+[data-theme="light"]{--bg:#f8fafc;--card:#ffffff;--card-solid:#ffffff;--border:#e2e8f0;--text:#0f172a;--text2:#334155;--muted:#64748b;--input:#f1f5f9;--modal:#ffffff;--shadow:rgba(0,0,0,.1);}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.glass{background:var(--card);border:1px solid var(--border);}
+.app-card{background:var(--card);border:1px solid var(--border);transition:all .25s;}
+.app-card:hover{border-color:rgba(124,58,237,.35);box-shadow:0 6px 24px var(--shadow);}
+.top3{border-color:rgba(234,179,8,.4)!important;background:rgba(234,179,8,.04)!important;}
+[data-theme="light"] .top3{background:rgba(234,179,8,.03)!important;}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.modal-overlay{background:rgba(0,0,0,.8);backdrop-filter:blur(12px);}
+.modal-box{background:var(--modal);border:1px solid var(--border);}
+.modal-title{color:var(--text);font-weight:700;font-size:17px;}
+.input-field{background:var(--input);border:1px solid var(--border);color:var(--text);}
+.input-field:focus{border-color:#7c3aed;outline:none;box-shadow:0 0 0 2px rgba(124,58,237,.15);}
+.input-field::placeholder{color:var(--muted);}
+.btn-primary{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;transition:all .25s;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#22c55e;transition:all .2s;}
+.btn-success:hover{background:rgba(34,197,94,.2);}
+[data-theme="light"] .btn-success{background:rgba(22,163,74,.07);color:#16a34a;border-color:rgba(22,163,74,.2);}
+.btn-blue{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#3b82f6;transition:all .2s;}
+.btn-blue:hover{background:rgba(59,130,246,.2);}
+[data-theme="light"] .btn-blue{background:rgba(37,99,235,.07);color:#2563eb;border-color:rgba(37,99,235,.2);}
+.btn-purple{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);color:#a78bfa;transition:all .2s;}
+.btn-purple:hover{background:rgba(124,58,237,.2);}
+[data-theme="light"] .btn-purple{background:rgba(109,40,217,.07);color:#7c3aed;border-color:rgba(109,40,217,.2);}
+.btn-amber{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#f59e0b;transition:all .2s;}
+.btn-amber:hover{background:rgba(245,158,11,.2);}
+[data-theme="light"] .btn-amber{background:rgba(217,119,6,.07);color:#d97706;border-color:rgba(217,119,6,.2);}
+.section-head{color:var(--text);font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+.rank-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
+/* Top N Panel */
+.topn-panel{background:rgba(234,179,8,.05);border:2px solid rgba(234,179,8,.3);border-radius:18px;padding:20px;margin-bottom:20px;}
+[data-theme="light"] .topn-panel{background:rgba(234,179,8,.03);border-color:rgba(234,179,8,.25);}
+.pick-card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;}
+.pick-card:hover{border-color:rgba(234,179,8,.4);}
+.pick-card.selected{border-color:#f59e0b;background:rgba(245,158,11,.07);}
+[data-theme="light"] .pick-card.selected{background:rgba(217,119,6,.04);}
+/* Message type buttons */
+.mtype-btn{padding:12px 8px;border-radius:12px;text-align:center;font-size:12px;font-weight:700;border:2px solid;cursor:pointer;transition:all .2s;}
+/* CV iframe */
+iframe.cv-viewer{width:100%;height:520px;border:none;border-radius:12px;background:var(--input);}
+/* Fade in */
+.fade-in{animation:fadeIn .35s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* Not eligible collapsed */
+.not-elig-section{cursor:pointer;}
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;font-size:13px;font-weight:600;max-width:360px;box-shadow:0 8px 32px var(--shadow);animation:slideUp .3s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* msg type selected highlight */
+.mtype-btn.active-hired{border-color:#22c55e!important;background:rgba(34,197,94,.12)!important;}
+.mtype-btn.active-rejected{border-color:#ef4444!important;background:rgba(239,68,68,.12)!important;}
+.mtype-btn.active-custom{border-color:#3b82f6!important;background:rgba(59,130,246,.12)!important;}
+</style>
+</head>
+<body>
+<div class="max-w-5xl mx-auto p-5">
+
+  <a href="{{ url_for('admin_dashboard') }}" class="inline-flex items-center gap-2 text-sm mb-5 transition-colors hover:text-purple-500" style="color:var(--muted)">
+    <i class="fas fa-arrow-left"></i> Back to Dashboard
+  </a>
+
+  <!-- Job Header -->
+  <div class="glass rounded-2xl p-5 mb-5">
+    <div class="flex items-start justify-between flex-wrap gap-4">
+      <div>
+        <div class="flex items-center gap-2 flex-wrap mb-1">
+          <h1 class="text-xl font-bold" style="color:var(--text)">{{ job.title }}</h1>
+          {% if job.category_obj %}<span class="badge" style="background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2)">{{ job.category_obj.name }}</span>{% endif %}
+        </div>
+        <div class="flex items-center gap-4 text-sm flex-wrap" style="color:var(--muted)">
+          <span><i class="fas fa-location-dot text-purple-500 mr-1"></i>{{ job.location }}</span>
+          {% if job.deadline %}<span><i class="fas fa-calendar text-orange-500 mr-1"></i>{{ job.deadline }}</span>{% endif %}
+          <span><i class="fas fa-users text-green-500 mr-1"></i>{{ total_apps }} total</span>
+          <span><i class="fas fa-check-circle text-blue-500 mr-1"></i>{{ eligible_apps|length }} eligible</span>
+          <span><i class="fas fa-percent text-yellow-500 mr-1"></i>Threshold: {{ threshold }}%</span>
+        </div>
+        <div class="flex flex-wrap gap-1.5 mt-2">
+          {% for s in job.required_skills.split(',') %}<span class="badge" style="background:rgba(59,130,246,.08);color:#3b82f6;border:1px solid rgba(59,130,246,.15)">{{ s.strip() }}</span>{% endfor %}
+        </div>
+      </div>
+      {% if eligible_apps %}
+      <div class="text-right flex-shrink-0">
+        <p class="text-xs" style="color:var(--muted)">Best candidate</p>
+        <p class="font-bold" style="color:var(--text)">{{ eligible_apps[0].applicant.name }}</p>
+        <p class="text-2xl font-black text-green-500">{{ eligible_apps[0].match_score }}%</p>
+        <p class="text-xs text-green-600">{{ eligible_apps[0].applicant.city }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ════ TOP N SMART SELECTION ════ -->
+  <div class="topn-panel fade-in">
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+      <div>
+        <h2 class="font-bold text-base flex items-center gap-2" style="color:var(--text)">
+          <i class="fas fa-trophy text-yellow-500"></i> Smart Candidate Selection
+        </h2>
+        <p class="text-xs mt-0.5" style="color:var(--muted)">Candidates ranked by score. Select any to shortlist & notify instantly.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs" style="color:var(--muted)">Show top:</span>
+        <input type="number" id="topNInput" value="3" min="1" max="{{ eligible_apps|length or 1 }}"
+          class="input-field w-16 px-2 py-1.5 rounded-lg text-sm text-center font-bold">
+        <button onclick="showTopN()" class="btn-primary px-4 py-1.5 rounded-lg text-sm font-semibold">
+          <i class="fas fa-filter mr-1"></i>Show
+        </button>
+      </div>
+    </div>
+
+    {% if not eligible_apps %}
+    <div class="text-center py-8 rounded-xl" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2)">
+      <i class="fas fa-user-slash text-3xl text-red-400 mb-2 opacity-60"></i>
+      <p class="font-semibold text-red-400">No eligible candidates yet</p>
+      <p class="text-xs mt-1" style="color:var(--muted)">No CV scored above {{ threshold }}%. Lower threshold in Settings or wait for more applications.</p>
+    </div>
+    {% else %}
+
+    <div id="topNCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3"></div>
+
+    <div id="topNMsg" class="hidden mb-3 px-4 py-2.5 rounded-xl text-sm font-medium" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);color:#f59e0b">
+      <i class="fas fa-info-circle mr-2"></i><span id="topNMsgTxt"></span>
+    </div>
+
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <p class="text-xs" style="color:var(--muted)"><i class="fas fa-hand-pointer text-purple-500 mr-1"></i>Click cards to select → Shortlist & Notify</p>
+        <p id="selSummary" class="text-xs text-yellow-500 font-semibold mt-1 hidden"></p>
+      </div>
+      <button onclick="doShortlist()" id="shortlistBtn" disabled
+        class="px-5 py-2 rounded-xl text-sm font-bold text-white flex items-center gap-2 opacity-40 cursor-not-allowed transition-all"
+        style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+        <i class="fas fa-paper-plane"></i>Shortlist & Notify
+      </button>
+    </div>
+    <div id="shortlistOk" class="hidden mt-3 px-4 py-3 rounded-xl text-sm font-medium text-green-500" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25)">
+      <i class="fas fa-check-circle mr-2"></i><span id="shortlistOkTxt"></span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ════ ELIGIBLE CANDIDATES ════ -->
+  {% if eligible_apps %}
+  <div class="mb-6">
+    <div class="section-head mb-3">
+      <i class="fas fa-circle-check text-green-500"></i>
+      Eligible Candidates ({{ eligible_apps|length }})
+      <span class="badge" style="background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)">Score ≥ {{ threshold }}%</span>
+      <span class="text-xs ml-auto" style="color:var(--muted)">Sorted by score ↓</span>
+    </div>
+    <div class="space-y-3">
+      {% for app in eligible_apps %}
+      <div class="app-card {% if app.is_top3 %}top3{% endif %} rounded-2xl p-4 fade-in" style="animation-delay:{{ (loop.index0 * 0.05)|round(2) }}s">
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- Rank -->
+          <div class="rank-badge flex-shrink-0 {% if app.rank==1 %}bg-yellow-500/15 text-yellow-500{% elif app.rank==2 %}bg-slate-400/15 text-slate-400{% elif app.rank==3 %}bg-orange-500/15 text-orange-500{% else %}bg-white/5 text-gray-500{% endif %}">
+            {% if app.rank==1 %}<i class="fas fa-crown text-sm"></i>{% else %}<span class="text-xs">#{{ app.rank }}</span>{% endif %}
+          </div>
+          <!-- Score ring -->
+          <div style="width:64px;height:64px;border-radius:50%;background:conic-gradient(#22c55e {{ app.match_score*3.6 }}deg,rgba(128,128,128,.15) 0);position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="position:absolute;inset:7px;background:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+              <span style="color:#22c55e;font-size:11px;font-weight:800">{{ app.match_score }}%</span>
+            </div>
+          </div>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <p class="font-bold" style="color:var(--text)">{{ app.applicant.name }}</p>
+              <span class="badge" style="background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)">✓ Eligible</span>
+              {% if app.is_top3 %}<span class="badge" style="background:rgba(234,179,8,.1);color:#f59e0b;border:1px solid rgba(234,179,8,.2)"><i class="fas fa-star mr-0.5"></i>Top Pick</span>{% endif %}
+            </div>
+            <div class="flex items-center gap-3 text-xs flex-wrap mb-1.5" style="color:var(--muted)">
+              <span class="{% if app.priority_tier==1 %}text-green-500{% elif app.priority_tier==2 %}text-blue-500{% else %}text-orange-500{% endif %}">
+                <i class="fas fa-map-pin mr-0.5"></i>{{ app.applicant.city or 'N/A' }} · Tier {{ app.priority_tier }}
+              </span>
+              <span><i class="fas fa-envelope mr-0.5"></i>{{ app.applicant.email }}</span>
+              <span><i class="fas fa-clock mr-0.5"></i>{{ app.applied_at.strftime('%d %b %Y') }}</span>
+            </div>
+            {% if app.skills_list %}
+            <div class="flex flex-wrap gap-1">{% for s in app.skills_list %}<span class="badge" style="background:rgba(34,197,94,.08);color:#16a34a;border:1px solid rgba(34,197,94,.15)">✓ {{ s }}</span>{% endfor %}</div>
+            {% endif %}
+          </div>
+          <!-- Actions -->
+          <div class="flex flex-col gap-1.5 flex-shrink-0">
+            <button onclick="openCVModal({{ app.id }},'{{ app.cv_filename|e }}','{{ app.applicant.name|e }}')" class="btn-blue px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1"><i class="fas fa-file-alt"></i>View CV</button>
+            <a href="{{ url_for('download_cv', app_id=app.id) }}" class="btn-success px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 justify-center"><i class="fas fa-download"></i>Download</a>
+            <button onclick="openMsgModal({{ app.id }},'{{ app.applicant.name|e }}',true)" class="btn-purple px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1"><i class="fas fa-envelope"></i>Message</button>
+            <button onclick="openReasonModal({{ app.id }},'{{ app.applicant.name|e }}',{{ app.match_score }},{{ app.priority_tier }},{{ threshold }},'{{ (app.skills_list|join(','))|e }}','{{ job.required_skills|e }}')" class="btn-amber px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1"><i class="fas fa-lightbulb"></i>Why?</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ════ NOT ELIGIBLE (collapsed) ════ -->
+  {% if not_eligible_apps %}
+  <div>
+    <button onclick="toggleNotElig()" class="not-elig-section w-full text-left px-4 py-3 rounded-xl transition-colors hover:bg-black/5" style="background:var(--card);border:1px solid var(--border)">
+      <span class="section-head">
+        <i class="fas fa-circle-xmark text-red-400"></i>
+        Not Eligible ({{ not_eligible_apps|length }})
+        <span class="badge" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)">Score &lt; {{ threshold }}%</span>
+        <i class="fas fa-chevron-down ml-auto text-xs" id="neChev" style="color:var(--muted)"></i>
+      </span>
+    </button>
+    <div id="notEligList" class="hidden space-y-2 mt-2">
+      {% for app in not_eligible_apps %}
+      <div class="app-card rounded-xl p-3 fade-in opacity-80" style="animation-delay:{{ (loop.index0 * 0.04)|round(2) }}s">
+        <div class="flex items-center gap-3 flex-wrap">
+          <div style="width:52px;height:52px;border-radius:50%;background:conic-gradient(#ef4444 {{ app.match_score*3.6 }}deg,rgba(128,128,128,.15) 0);position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="position:absolute;inset:6px;background:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+              <span style="color:#ef4444;font-size:10px;font-weight:800">{{ app.match_score }}%</span>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <p class="font-semibold text-sm" style="color:var(--text)">{{ app.applicant.name }}</p>
+              <span class="badge" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)">✗ Not Eligible</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs" style="color:var(--muted)">
+              <span><i class="fas fa-map-pin mr-0.5"></i>{{ app.applicant.city or 'N/A' }}</span>
+              <span><i class="fas fa-clock mr-0.5"></i>{{ app.applied_at.strftime('%d %b %Y') }}</span>
+            </div>
+          </div>
+          <div class="flex gap-1.5 flex-shrink-0">
+            <button onclick="openCVModal({{ app.id }},'{{ app.cv_filename|e }}','{{ app.applicant.name|e }}')" class="btn-blue px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1"><i class="fas fa-file-alt"></i>View</button>
+            <button onclick="openMsgModal({{ app.id }},'{{ app.applicant.name|e }}',false)" class="btn-purple px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1"><i class="fas fa-envelope"></i>Message</button>
+            <button onclick="openReasonModal({{ app.id }},'{{ app.applicant.name|e }}',{{ app.match_score }},{{ app.priority_tier }},{{ threshold }},'{{ (app.skills_list|join(','))|e }}','{{ job.required_skills|e }}')" class="btn-amber px-2.5 py-1.5 rounded-lg text-xs font-semibold"><i class="fas fa-lightbulb"></i></button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not eligible_apps and not not_eligible_apps %}
+  <div class="glass rounded-2xl p-14 text-center">
+    <i class="fas fa-inbox text-5xl mb-3 opacity-20" style="color:var(--muted)"></i>
+    <p class="text-lg font-semibold" style="color:var(--text)">No applications yet</p>
+    <p class="text-sm mt-1" style="color:var(--muted)">Share this job posting so candidates can apply.</p>
+  </div>
+  {% endif %}
+
+</div><!-- end max-w -->
+
+<!-- ════ CV VIEWER MODAL ════ -->
+<div id="cvModal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+  <div class="modal-box rounded-2xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[90vh]">
+    <div class="flex items-center justify-between px-5 py-4 flex-shrink-0" style="border-bottom:1px solid var(--border)">
+      <div><p class="font-bold" style="color:var(--text)" id="cvName">CV Viewer</p><p class="text-xs" id="cvFile" style="color:var(--muted)"></p></div>
+      <div class="flex gap-2">
+        <a id="cvDlLink" href="#" class="btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fas fa-download mr-1"></i>Download</a>
+        <button onclick="closeCVModal()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10" style="color:var(--muted)"><i class="fas fa-times text-sm"></i></button>
+      </div>
+    </div>
+    <div class="flex-1 overflow-auto p-4" id="cvContent"></div>
+  </div>
+</div>
+
+<!-- ════ MESSAGE MODAL ════ -->
+<div id="msgModal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+  <div class="modal-box rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <div><h3 class="modal-title">Send Message</h3><p class="text-xs mt-0.5" id="msgTo" style="color:var(--muted)"></p></div>
+      <button onclick="closeMsgModal()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10" style="color:var(--muted)"><i class="fas fa-times text-sm"></i></button>
+    </div>
+    <div id="msgFormWrap" class="space-y-4">
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" onclick="setMT('hired')" id="mt-hired" class="mtype-btn text-green-500" style="border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.07)">
+          <i class="fas fa-check-circle text-xl block mb-1"></i>Hired ✓
+        </button>
+        <button type="button" onclick="setMT('rejected')" id="mt-rejected" class="mtype-btn text-red-400" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)">
+          <i class="fas fa-times-circle text-xl block mb-1"></i>Rejected ✗
+        </button>
+        <button type="button" onclick="setMT('custom')" id="mt-custom" class="mtype-btn text-blue-400" style="border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.06)">
+          <i class="fas fa-pen text-xl block mb-1"></i>Custom
+        </button>
+      </div>
+      <div id="jdWrap" class="hidden">
+        <label class="block text-xs font-semibold mb-1.5 uppercase" style="color:var(--muted)">Joining Date</label>
+        <input type="date" id="jdVal" class="input-field w-full px-4 py-2.5 rounded-xl text-sm">
+      </div>
+      <div id="custWrap" class="hidden">
+        <label class="block text-xs font-semibold mb-1.5 uppercase" style="color:var(--muted)">Your Message</label>
+        <textarea id="custMsg" rows="4" placeholder="Type your message..." class="input-field w-full px-4 py-2.5 rounded-xl text-sm resize-none"></textarea>
+      </div>
+      <div id="msgPrev" class="hidden px-3 py-2.5 rounded-xl text-xs" style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);color:var(--text2)">
+        <p class="font-semibold text-purple-400 mb-1"><i class="fas fa-eye mr-1"></i>What will be sent:</p>
+        <p id="msgPrevTxt"></p>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="closeMsgModal()" class="flex-1 py-2.5 rounded-xl text-sm border" style="border-color:var(--border);color:var(--muted)">Cancel</button>
+        <button onclick="doSendMsg()" id="sendMsgBtn" class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold"><i class="fas fa-paper-plane mr-1"></i>Send</button>
+      </div>
+    </div>
+    <div id="msgSentBox" class="hidden py-6 text-center">
+      <div class="w-14 h-14 rounded-full bg-green-500/15 flex items-center justify-center mx-auto mb-3"><i class="fas fa-check text-2xl text-green-500"></i></div>
+      <p class="font-bold text-green-500">Message Sent!</p>
+      <p class="text-xs mt-1" style="color:var(--muted)">Candidate will see this in their notifications.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════ REASON POPUP ════ -->
+<div id="reasonModal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+  <div class="modal-box rounded-2xl p-6 w-full max-w-md shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="modal-title" id="reasonName">Analysis</h3>
+      <button onclick="closeModal('reasonModal')" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10" style="color:var(--muted)"><i class="fas fa-times text-sm"></i></button>
+    </div>
+    <div id="reasonContent" class="space-y-3"></div>
+  </div>
+</div>
+
+<!-- Eligible data for JS -->
+<script id="eligData" type="application/json">
+[{% for a in eligible_apps %}{"id":{{ a.id }},"rank":{{ a.rank }},"name":"{{ a.applicant.name|e }}","city":"{{ a.applicant.city or 'N/A' }}","score":{{ a.match_score }},"tier":{{ a.priority_tier }},"skills":{{ a.skills_list|tojson }}}{% if not loop.last %},{% endif %}{% endfor %}]
+</script>
+
+<script>
+const JOB_ID={{ job.id }}, THRESH={{ threshold }};
+let eligs=[];
+try{eligs=JSON.parse(document.getElementById('eligData').textContent);}catch(e){}
+let selIds=new Set();
+
+/* ── Top N ─────────────────────────────────────────── */
+function showTopN(){
+  const n=parseInt(document.getElementById('topNInput').value)||3;
+  const msg=document.getElementById('topNMsg'),msgTxt=document.getElementById('topNMsgTxt');
+  const avail=eligs.length, actual=Math.min(n,avail);
+  msg.classList.toggle('hidden',n<=avail);
+  if(n>avail) msgTxt.textContent=`Only ${avail} eligible candidate(s) available — showing all ${avail}.`;
+  selIds.clear(); updateShortlistBtn();
+  const con=document.getElementById('topNCards');
+  con.innerHTML=eligs.slice(0,actual).map((c,i)=>{
+    const medals=['🥇','🥈','🥉'],clr='#22c55e',deg=c.score*3.6;
+    const tc=['','text-green-500','text-blue-500','text-orange-500'][c.tier]||'';
+    return `<div class="pick-card" id="pc-${c.id}" onclick="togglePick(${c.id},'${esc(c.name)}')">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl flex-shrink-0">${medals[i]||'#'+(i+1)}</span>
+        <div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(${clr} ${deg}deg,rgba(128,128,128,.15) 0);position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <div style="position:absolute;inset:5px;background:var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <span style="color:${clr};font-size:9px;font-weight:800">${c.score}%</span>
+          </div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold truncate" style="color:var(--text)">${esc(c.name)}</p>
+          <p class="text-xs ${tc}">${esc(c.city)} · Tier ${c.tier}</p>
+          <p class="text-xs" style="color:var(--muted)">${c.skills.slice(0,3).join(', ')}</p>
+        </div>
+        <div id="chk-${c.id}" class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(128,128,128,.15);border:2px solid rgba(128,128,128,.3)">
+          <i class="fas fa-check text-xs text-green-500 hidden"></i>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function togglePick(id,name){
+  if(selIds.has(id)){selIds.delete(id);}else{selIds.add(id);}
+  const c=document.getElementById(`pc-${id}`),chk=document.getElementById(`chk-${id}`);
+  const sel=selIds.has(id);
+  c.classList.toggle('selected',sel);
+  if(chk){
+    chk.style.background=sel?'rgba(34,197,94,.2)':'rgba(128,128,128,.15)';
+    chk.style.borderColor=sel?'#22c55e':'rgba(128,128,128,.3)';
+    chk.querySelector('.fa-check').classList.toggle('hidden',!sel);
+  }
+  updateShortlistBtn();
+}
+function updateShortlistBtn(){
+  const btn=document.getElementById('shortlistBtn'),summ=document.getElementById('selSummary');
+  if(!btn)return;
+  if(selIds.size>0){
+    btn.disabled=false;btn.classList.remove('opacity-40','cursor-not-allowed');
+    summ.textContent='Selected: '+eligs.filter(c=>selIds.has(c.id)).map(c=>c.name).join(', ');
+    summ.classList.remove('hidden');
+  }else{btn.disabled=true;btn.classList.add('opacity-40','cursor-not-allowed');summ.classList.add('hidden');}
+}
+async function doShortlist(){
+  if(!selIds.size)return;
+  const btn=document.getElementById('shortlistBtn');
+  btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';btn.disabled=true;
+  try{
+    const r=await fetch(`/admin/select_top_cvs/${JOB_ID}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({selected_ids:[...selIds]})});
+    const d=await r.json();
+    if(d.success){
+      document.getElementById('shortlistOk').classList.remove('hidden');
+      document.getElementById('shortlistOkTxt').textContent='✅ Shortlisted & notified: '+d.notified.join(', ')+'. They can see this in their portal.';
+      selIds.clear();document.querySelectorAll('.pick-card').forEach(c=>c.classList.remove('selected'));
+      document.querySelectorAll('[id^="chk-"]').forEach(c=>{c.style.background='rgba(128,128,128,.15)';c.style.borderColor='rgba(128,128,128,.3)';c.querySelector('.fa-check').classList.add('hidden');});
+      updateShortlistBtn();
+    }else showToast('Error: '+(d.error||'Unknown'),'red');
+  }catch(e){showToast('Network error','red');}
+  btn.innerHTML='<i class="fas fa-paper-plane mr-2"></i>Shortlist & Notify';
+}
+function toggleNotElig(){
+  const l=document.getElementById('notEligList'),ch=document.getElementById('neChev');
+  l.classList.toggle('hidden');ch.className=l.classList.contains('hidden')?'fas fa-chevron-down ml-auto text-xs':'fas fa-chevron-up ml-auto text-xs';
+  ch.style.color='var(--muted)';
+}
+
+/* ── CV Modal ───────────────────────────────────────── */
+function openCVModal(id,fn,name){
+  document.getElementById('cvName').textContent=name+"'s CV";
+  document.getElementById('cvFile').textContent=fn;
+  document.getElementById('cvDlLink').href=`/admin/download_cv/${id}`;
+  const ext=fn.split('.').pop().toLowerCase(),con=document.getElementById('cvContent');
+  con.innerHTML=ext==='pdf'
+    ?`<iframe src="/admin/view_cv/${id}" class="cv-viewer"></iframe>`
+    :`<img src="/admin/view_cv/${id}" alt="CV" style="max-width:100%;max-height:520px;border-radius:12px;object-fit:contain;display:block;margin:auto">`;
+  document.getElementById('cvModal').classList.remove('hidden');
+}
+function closeCVModal(){document.getElementById('cvModal').classList.add('hidden');document.getElementById('cvContent').innerHTML='';}
+document.getElementById('cvModal').addEventListener('click',e=>{if(e.target===document.getElementById('cvModal'))closeCVModal();});
+
+/* ── Message Modal ──────────────────────────────────── */
+let curAppId=null,curMT='hired';
+function openMsgModal(id,name,isElig){
+  curAppId=id;document.getElementById('msgTo').textContent='To: '+name;
+  document.getElementById('msgSentBox').classList.add('hidden');
+  document.getElementById('msgFormWrap').style.display='block';
+  setMT(isElig?'hired':'rejected');
+  document.getElementById('msgModal').classList.remove('hidden');
+}
+function closeMsgModal(){document.getElementById('msgModal').classList.add('hidden');}
+document.getElementById('msgModal').addEventListener('click',e=>{if(e.target===document.getElementById('msgModal'))closeMsgModal();});
+function setMT(t){
+  curMT=t;
+  ['hired','rejected','custom'].forEach(x=>{
+    const b=document.getElementById('mt-'+x);
+    b.classList.remove('active-hired','active-rejected','active-custom');
+    b.style.opacity=x===t?'1':'0.55';b.style.transform=x===t?'scale(1.04)':'scale(1)';
+  });
+  document.getElementById('mt-'+t).classList.add('active-'+t);
+  document.getElementById('jdWrap').classList.toggle('hidden',t!=='hired');
+  document.getElementById('custWrap').classList.toggle('hidden',t!=='custom');
+  const prev=document.getElementById('msgPrev'),pt=document.getElementById('msgPrevTxt');
+  if(t==='hired'){prev.classList.remove('hidden');pt.textContent='AI-generated congratulations message with joining date, document checklist, and HR signature.';}
+  else if(t==='rejected'){prev.classList.remove('hidden');pt.textContent='AI-generated rejection message with score breakdown, missing skills analysis, and improvement tips.';}
+  else{prev.classList.add('hidden');}
+}
+async function doSendMsg(){
+  const btn=document.getElementById('sendMsgBtn');
+  btn.innerHTML='<i class="fas fa-spinner fa-spin mr-1"></i>Sending...';btn.disabled=true;
+  const fd=new FormData();fd.append('msg_type',curMT);fd.append('message',document.getElementById('custMsg').value);fd.append('joining_date',document.getElementById('jdVal').value);
+  try{
+    const r=await fetch(`/admin/send_message/${curAppId}`,{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.success){document.getElementById('msgFormWrap').style.display='none';document.getElementById('msgSentBox').classList.remove('hidden');setTimeout(()=>closeMsgModal(),2200);}
+    else showToast('Error: '+(d.error||'Unknown'),'red');
+  }catch(e){showToast('Network error','red');}
+  btn.innerHTML='<i class="fas fa-paper-plane mr-1"></i>Send';btn.disabled=false;
+}
+
+/* ── Reason Modal ───────────────────────────────────── */
+function openReasonModal(id,name,score,tier,thresh,matchedStr,reqStr){
+  document.getElementById('reasonName').textContent='📊 '+name;
+  const elig=score>=thresh,matched=matchedStr?matchedStr.split(',').filter(s=>s.trim()):[],
+        req=reqStr.split(',').map(s=>s.trim().toLowerCase()),
+        missing=req.filter(s=>!matched.map(m=>m.toLowerCase()).includes(s)),
+        tc=['','text-green-500','text-blue-500','text-orange-500'][tier]||'',
+        tl=['','Same city (highest priority)','Nearby city (medium)','Distant city (standard)'][tier]||'';
+  document.getElementById('reasonContent').innerHTML=`
+    <div class="p-3 rounded-xl ${elig?'bg-green-500/8':'bg-red-500/8'}" style="border:1px solid ${elig?'rgba(34,197,94,.2)':'rgba(239,68,68,.2)'}">
+      <p class="font-bold text-sm ${elig?'text-green-500':'text-red-400'}">${elig?'✅ ELIGIBLE':'❌ NOT ELIGIBLE'}</p>
+      <p class="text-xs mt-1" style="color:var(--muted)">Score: <strong style="color:var(--text)">${score}%</strong> vs threshold <strong style="color:var(--text)">${thresh}%</strong></p>
+    </div>
+    <div class="p-3 rounded-xl" style="background:var(--input);border:1px solid var(--border)">
+      <p class="text-xs ${tc}"><i class="fas fa-map-pin mr-1"></i>Tier ${tier}: ${tl}</p>
+    </div>
+    ${matched.length?`<div class="p-3 rounded-xl bg-green-500/5" style="border:1px solid rgba(34,197,94,.2)"><p class="text-xs font-semibold text-green-500 mb-1.5">✓ Matched Skills (${matched.length})</p><div class="flex flex-wrap gap-1">${matched.map(s=>`<span class="badge" style="background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)">${s}</span>`).join('')}</div></div>`:''}
+    ${missing.length?`<div class="p-3 rounded-xl bg-red-500/5" style="border:1px solid rgba(239,68,68,.2)"><p class="text-xs font-semibold text-red-400 mb-1.5">✗ Missing Skills (${missing.length})</p><div class="flex flex-wrap gap-1">${missing.map(s=>`<span class="badge" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)">${s}</span>`).join('')}</div></div>`:''}
+    <div class="p-3 rounded-xl" style="background:var(--input);border:1px solid var(--border)">
+      <p class="text-xs font-semibold text-blue-400 mb-1">💡 Recommendation</p>
+      <p class="text-xs" style="color:var(--muted)">${elig?`Strong match. ${tier===1?'Local candidate — highest priority. ':''}Recommend for interview.`:`Below threshold. ${missing.length?'Missing: '+missing.slice(0,3).join(', ')+'. ':''} Consider rejection or wait for better applicants.`}</p>
+    </div>`;
+  document.getElementById('reasonModal').classList.remove('hidden');
+}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+document.getElementById('reasonModal').addEventListener('click',e=>{if(e.target===document.getElementById('reasonModal'))closeModal('reasonModal');});
+
+/* ── Toast ──────────────────────────────────────────── */
+function showToast(msg,color='green'){
+  const t=document.createElement('div');t.className='toast';
+  t.style.cssText=`background:rgba(${color==='green'?'34,197,94':'239,68,68'},.12);border:1px solid rgba(${color==='green'?'34,197,94':'239,68,68'},.3);color:${color==='green'?'#22c55e':'#ef4444'}`;
+  t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3500);
+}
+
+/* ── Init ───────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>showTopN());
+</script>
+</body>
+</html>
