@@ -72,9 +72,10 @@ cv_matcher/
 └── requirements.txt        # Python dependencies
 ```
 
-## Screenshots
+ <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/4cdc5efa-53a7-46c4-8a92-0b92dd81d725" />
 
-*Coming soon — add screenshots or a demo GIF here to showcase the dashboard and matching flow.*
+
+
 
 ## Roadmap
 
