@@ -78,7 +78,7 @@ USER PANEL
 <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/59cef393-0d5f-42d0-b43d-cc7c161ed580" />
 <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/09db7a08-d54d-4f02-bd78-3fb9438e704b" />
 
-USER PANEL
+ADMIN PANEL
 <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/dd4509cc-d48f-46c1-8573-2934598562cf" />
 <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/379dad19-20a9-49ea-97ea-78bb608bed65" />
 <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/7ba1cdef-ec8a-4447-b8ac-ed80ddc13ae3" />
